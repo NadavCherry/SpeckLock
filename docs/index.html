@@ -424,8 +424,10 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
   <div class="pull">
     That gap motivates the method; it is not the ablation. This baseline differs from the pipeline
     in architecture, training corpus and resolution, so the controlled comparison is the one above.
-    What it does show: single-frame appearance handles sky silhouettes, and below the treeline it
-    finds nothing.
+    What it does show: this model handles sky silhouettes, and below the treeline it outputs
+    nothing even at conf 0.02. That is a property of this model, not of single frames: the
+    controlled single-frame arm above puts a box on the drone in 57&nbsp;% of labelled frames when
+    all of its detections are kept.
   </div>
 
   <h3>Generalising: one model, many datasets, a moving camera</h3>
@@ -784,6 +786,12 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
          The measured figure is 231.5 ms, and it inverts the conclusion: the motion stage
          dominates and TensorRT does not touch it. Section 04's table above (231.5 ms, 90%
          motion) had already been corrected, so the page was contradicting itself. -->
+    <li><b>The temporal stack's measured gain is on near-static video.</b> Across the stack's
+      12-frame window the background of <code>10_06</code> moves a median 0.142&nbsp;px; on ARD-MAV it
+      moves 11.5&nbsp;px and on NPS 59.6&nbsp;px, and on those two moving-camera benchmarks the stack
+      does not separate from a single frame &mdash; below 10&nbsp;px on ARD-MAV it leads on every
+      seed, not significantly. What is shown for moving cameras is a pipeline built for them, not
+      a gain measured on them.</li>
     <li><b>The loop is not real-time yet, and the classical motion detector is most of the
       reason.</b> On the four-camera ring, perception is 231.5&nbsp;ms a tick and 208.0&nbsp;ms of
       that is the motion stage (~90%); the network is 16.2&nbsp;ms (~7%), tracker and guidance the
