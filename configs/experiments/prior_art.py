@@ -71,13 +71,15 @@ from .base import NO_PHOTOMETRIC_AUG, ExperimentConfig, VramReference
 #: The paper's half second at 30 fps. Not SpeckLock's TEMPORAL_DT.
 TYOLOV8_DT = 15
 
-#: NOT measured. YOLOv8m at 640 px, batch 8, stock three-scale head -- sized above
-#: yolov8s-p2's measured 3.54 GiB at batch 8 (a smaller network, but with a costly stride-4
-#: head). tools/train.py records torch.cuda.max_memory_allocated() into RESULT.json, so the
-#: first run replaces this with a fact.
+#: Not yet torch's measurement. YOLOv8m at 640 px, batch 8, stock three-scale head, sized before
+#: any run above yolov8s-p2's measured 3.54 GiB at batch 8. The memory pilot (job 21175865) then
+#: saw 4,456 MiB in use on the card (nvidia-smi, CUDA context included) -- consistent with this.
+#: tools/train.py records torch.cuda.max_memory_allocated() into RESULT.json, so the first
+#: completed run replaces this with torch's own figure.
 YOLOV8M_ESTIMATE = VramReference(
     gib=5.0, batch=8, imgsz=640, measured=False,
-    source="ESTIMATE, yolov8m @ 640 px batch 8, never run in this repo; replace from RESULT.json")
+    source="ESTIMATE, yolov8m @ 640 px batch 8; pilot job 21175865 saw 4,456 MiB via nvidia-smi; "
+           "replace from RESULT.json")
 
 # The shipped temporal arms' flags verbatim (configs/experiments/ardmav.py _TEMPORAL_BUILD),
 # plus the window and the stabiliser -- explicit, so a changed default cannot drift the pair.
