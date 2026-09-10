@@ -238,7 +238,7 @@ def make_edgert():
            ["1280 &#215; 720 BGR", "30 fps stream"])
     F.card(270, TOP + 10, 260, 170, "STAGE 0 &#183; LITE STABILIZER", EDGE, "stabilize (CPU)",
            ["phase-correlate a fixed", "768&#215;448 central crop", "against frame 0"],
-           sub="full-frame precision at 1/3 the cost &#183; 4.3 ms")
+           sub="full-frame precision at 1/3 the cost")
 
     # temporal stack card (the same three-squares motif)
     sx, sy, sw, sh = 600, TOP, 330, 190

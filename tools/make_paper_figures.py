@@ -147,7 +147,8 @@ def fig1(results: Path, out: Path, datasets: list[str], bins: str = "mission") -
         ax.set_ylim(0, 1)
         ax.grid(True, axis="y", linewidth=0.6, alpha=0.5)
         n_seq = arms[order[0]].get("n_sequences", "?")
-        ax.set_title("%s   (%s sequences)" % (ds, n_seq), color=INK, pad=8, fontsize=10)
+        ax.set_title("%s   (%s sequence%s)" % (ds, n_seq, "" if str(n_seq) == "1" else "s"),
+                     color=INK, pad=8, fontsize=10)
         ax.set_xlabel("target size, sqrt(area)", labelpad=6)
     axes[0][0].set_ylabel("AP")
     axes[0][0].legend(loc="upper left", fontsize=8)

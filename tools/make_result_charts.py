@@ -115,9 +115,9 @@ def chart_cpa():
     # mission flown on the seeker's own detections is 0 / 3. The qualifier lives in the
     # generator so that re-running the documented command cannot strip it again.
     titled(fig, "24 / 24 intercepted, with a perfect sensor",
-           "Isaac Sim, closed loop, 24 arrival bearings, flown on detector “oracle” — the "
-           "simulator's own bounding box at zero latency. It measures the guidance law, not "
-           "the seeker: flown on the seeker's own detections, the same mission is 0 / 3.")
+           "Isaac Sim, 24 arrival bearings, flown on detector “oracle” — the simulator's own box "
+           "at zero latency. It measures the guidance law, not the seeker: on the seeker's own "
+           "detections the same mission is 0 / 3.")
     save(fig, "chart_cpa")
 
 
