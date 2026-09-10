@@ -3,10 +3,12 @@
 #SBATCH --time 0-02:00:00
 #SBATCH --job-name sl_tylocbuild
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tylocbuild-%j.out
-#SBATCH --mem=800M
-### --mem ABOVE IS AN ESTIMATE, replaced at submission by the benchmark build's measured peak
-### (job 21175379, /usr/bin/time -v, one process) plus ~20 %: the same builder, on smaller
-### 1280x720 video. This step prints its own peak too.
+#SBATCH --mem=300M
+### 300M is sized from a measurement plus one unmeasured step. The same builder peaked at
+### 222,352 kB building ARD-MAV's 1920x1080 centred set (job 21175379, /usr/bin/time); these
+### videos are 1280x720. The test gate below imports the same modules plus pytest and has never
+### been measured, so the estimate for the job is ~250 MB and this is that plus ~20 %. Both
+### steps now run under /usr/bin/time, so the next edit of this line comes from the log.
 ###
 ### NO --gpus: decoding video and writing tiles are infrastructure.
 ###
@@ -18,9 +20,11 @@ ROOT=${SPECKLOCK_ROOT:-/home/cherryn/projects/SpeckLock}
 cd "$ROOT"; module load anaconda; source activate speck
 export YOLO_AUTOINSTALL=false; export PYTHONPATH=$ROOT
 echo "JOB $SLURM_JOB_ID on $(hostname)"
-python -m pytest -q --no-header -x dronedet/tests/test_centred_taps.py \
+/usr/bin/time -v -o "gate_time.$$" python -m pytest -q --no-header -x dronedet/tests/test_centred_taps.py \
     dronedet/tests/test_builder_passes_window.py dronedet/tests/test_prior_art_local.py 2>&1 | tail -2
-[ "${PIPESTATUS[0]}" -eq 0 ] || { echo "*** tests failed -- not building ***"; exit 1; }
+g=${PIPESTATUS[0]}
+grep -E "Maximum resident" "gate_time.$$" | sed 's/^/test gate: /'; rm -f "gate_time.$$"
+[ "$g" -eq 0 ] || { echo "*** tests failed -- not building ***"; exit 1; }
 
 /usr/bin/time -v python -u tools/make_dataset_external.py --task local-temporal --tile 640 \
     --stride-train 1 --stride-val 4 --min-side 0 --dt 15 --taps centred --stab off
