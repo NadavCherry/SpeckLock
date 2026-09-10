@@ -29,16 +29,18 @@ The design narrative, in order. Each reads on its own; together they are how the
 
 ### Investigations that followed round 8
 
-These answer a single question each, and three of them end in a negative result.
+These answer a single question each, and four of them end in a negative result.
 
 | document | what it settles |
 |---|---|
+| [camera motion](../work/reports/camera_motion/local.md) · [ARD-MAV](../work/reports/camera_motion/ardmav.md) · [NPS](../work/reports/camera_motion/nps.md) | **Does "moving camera" describe the evidence?** Measured the same way on every dataset: across the stack's 12-frame window the background moves a median 0.142 px on `10_06`, 11.5 px on ARD-MAV and 59.6 px on NPS. The large temporal gain was measured on the first; on the other two it is not detected |
 | [reports/yolomg-nps-discrepancy.md](reports/yolomg-nps-discrepancy.md) | **Why does the paper report 0.95 on NPS where we measure 0.527?** ~78 % attributed to three measured mechanisms: which videos are held out (+0.291), per-frame leakage (+0.045, a lower bound), AP convention (+0.010). ~0.109 is left explicitly unexplained |
 | [reports/size-crossover.md](reports/size-crossover.md) | **Is there a target size below which we win?** The means cross at ~10 px on ARD-MAV — but paired testing calls only the *competitor's* side significant. A consistent trend, not an established result |
 | [reports/track-level-birds.md](reports/track-level-birds.md) | **Does bird rejection hold where the decision is made?** 0 birds raised over 934 instances — measured at the track for the first time. The counterpart: 11 clutter tracks raised, track precision 0.083 |
 | [reports/dt-ablation.md](reports/dt-ablation.md) | **Is dt=6 the optimum?** 27 runs say the validation and test curves *disagree* and nothing separates. dt=6 is validation-supported, **not** empirically established |
 | [reports/edge-model.md](reports/edge-model.md) | **What is the 100+ FPS model?** The same checkpoint at half resolution, and the figure **did not reproduce**: 72.1 fps at 640 px on a 4090, at AP 0.639 |
 | [reports/pre-release-audit.md](reports/pre-release-audit.md) | The adversarial pre-release audit of this repository, and what it found |
+| [reports/final-audit.md](reports/final-audit.md) | The closing hostile re-read before publication: every point estimate reproduced, and five claims in the launch package outran their evidence (§2). §8 tracks the status of each |
 
 Rounds 1–3 are measured on this repo's own two videos and their artifacts are committed under
 [`work/`](../work/) — the eval tables, the ground truth, the detections and the tracks. Rounds 4–7

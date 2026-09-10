@@ -31,7 +31,9 @@ sed -i "s|/home/cherryn/projects/SpeckLock|$SPECKLOCK_ROOT|" cluster/*.sbatch   
   assumed. That script counts via `scontrol show job`, which is the only form this SLURM
   build reports correctly — `squeue -o %b` prints `N/A` for array tasks and undercounts,
   and `squeue -O AllocTRES` is rejected outright.
-* **Long runs carry `--requeue` and resume rather than restart.** A preempted 20-hour
+* **A long run never silently restarts.** Most carry `--requeue` and resume. The
+  Temporal-YOLOv8 training array carries none: `tools/train.py` refuses to overwrite a
+  recorded run, so a preempted task fails and is resubmitted by hand. A preempted 20-hour
   training job that silently began again at epoch 0 is worse than a failed one.
 * **Guards that fail loudly.** Several scripts verify their own preconditions before
   spending GPU time — that a checkpoint's `args.yaml` names the dataset the task claims,
@@ -44,3 +46,8 @@ sed -i "s|/home/cherryn/projects/SpeckLock|$SPECKLOCK_ROOT|" cluster/*.sbatch   
 The reports under `docs/reports/` name the job that generated them. `dt_build` → `dt_train`
 → `dt_eval` → `dt_compare` is the dt ablation; `splitfix` → `leak_train` is the leakage
 experiment in the YOLOMG/NPS investigation; `edge_bench` is the edge-model measurement.
+`camera_motion` measured how far each dataset's camera moves (`work/reports/camera_motion/`).
+The Temporal-YOLOv8 comparison is `tyolov8_build` → `tyolov8_pilot` → `tyolov8_train` →
+`tyolov8_infer` → `tyolov8_score` → `regen_summary`, with `tyolov8_local_build` →
+`tyolov8_local` → `tyolov8_local_score` on the project's own task, and `sizecurve_pairs` for the
+two by-size comparisons the shipped size curve does not make.
