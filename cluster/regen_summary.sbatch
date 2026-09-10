@@ -30,7 +30,7 @@ cd "$ROOT"; module load anaconda; source activate speck; export PYTHONPATH=$ROOT
 echo "JOB $SLURM_JOB_ID on $(hostname)"
 ### Gate on the Holm tests: every verdict below goes through dronedet.stats.apply_holm, and
 ### a regression there would print plausible, wrong verdicts after hours of resampling.
-python -m pytest -q --no-header -x dronedet/tests/test_holm_verdicts.py 2>&1 | tail -3
+python -m pytest -q --no-header -x dronedet/tests/test_holm_verdicts.py dronedet/tests/test_summary_gt_counts.py 2>&1 | tail -3
 if [ "${PIPESTATUS[0]}" -ne 0 ]; then echo "*** Holm tests failed -- not regenerating ***"; exit 1; fi
 /usr/bin/time -v python -u tools/make_summary.py --scorecards work/scorecards --n-resamples 2000 \
     --out work/reports/SUMMARY.md

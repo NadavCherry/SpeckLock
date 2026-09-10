@@ -576,9 +576,9 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
     The eight failures are 3 that never acquired and 5 that acquired and did not close — and since
     the aim bias is statistically centred on both axes (vertical &minus;1.8&nbsp;cm, t = &minus;1.27;
     lateral &minus;0.7&nbsp;cm, t = &minus;0.19), none of them is an aiming error. Against a
-    <em>perfect</em> sensor the same law is 120/120 on the stress matrix and 31/31 on the mission
-    suite. Running both on identical scenarios is the point of the split: it settles attribution
-    rather than arguing it.
+    <em>perfect</em> sensor, in the arithmetic sandbox, the same law is 120/120 on the stress matrix
+    and 42/42 on the full suite (<code>python -m pursuit.sandbox</code>). Those are not the 62 flown
+    scenarios, so they point the failures at perception rather than settle it.
   </p>
 </section>
 

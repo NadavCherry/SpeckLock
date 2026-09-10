@@ -306,7 +306,7 @@ law is chosen for what a camera can and cannot measure:
 | **One-camera pursuit** | **54 / 62** — 87.1 %, Wilson CI [76.6, 93.3] | `fusion`, trained weights | 🟡 **the closed-loop number to quote** |
 | City defence | 24 / 24, 0 buildings hit | `oracle` — the simulator's own box, zero latency | 🟡 measures the **guidance**, not the seeker |
 | City defence, real seeker | **0 / 3**, all three buildings struck | `yolo`, detection rate 4.4 % | ⚠️ the honest counterpart to the row above |
-| Guidance alone | 120/120 stress, 31/31 mission | perfect sensor | 🟡 which is what makes the attribution possible: every remaining failure is perception |
+| Guidance alone | 120/120 stress · 42/42 full · 7/7 ladder | perfect sensor, no renderer — `python -m pursuit.sandbox` | 🟡 points the remaining failures at perception; these are not the 62 flown scenarios |
 
 ⚠️ **24/24 is a guidance result, not a system result.** It is kept because it isolates the closure
 law — with a perfect sensor the law never misses, so every failure elsewhere is attributable to
@@ -338,7 +338,7 @@ Scorecards: [city](work/pursuit/city/METRICS.md) · [pursuit campaign](work/purs
 | City defence, real seeker | **0 / 3** | 3 engagements | 🟡 ⚠️ |
 | dt = 6 optimality | **not established** | 27 runs | ⚠️ |
 | 100+ FPS edge model | **did not reproduce** | — | ⚠️ |
-| Tests | **963** (1 skipped), ~90 s on one cluster CPU core | — | `python -m pytest` |
+| Tests | **966**, ~40 s locally, ~90 s on one cluster CPU core | — | `python -m pytest` |
 
 ---
 

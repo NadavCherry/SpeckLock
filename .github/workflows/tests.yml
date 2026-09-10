@@ -28,7 +28,7 @@ on:
   workflow_dispatch:
 
 env:
-  # Measured 2026-09-10: 963 collected = 540 pursuit + 423 dronedet; 962 pass, 1 skips.
+  # Measured 2026-09-10: 966 collected = 540 pursuit + 426 dronedet.
   # pursuit/tests is stable, so its floor sits at the exact count; dronedet/tests is
   # still being written, so its floor sits well below and should be ratcheted up
   # once the benchmark work has settled.

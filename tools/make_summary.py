@@ -147,6 +147,30 @@ def holm_table(table) -> list[str]:
     return out
 
 
+def gt_scored_lines(rows) -> list[str]:
+    """One line per dataset saying how many GT instances each arm is actually scored on.
+
+    Printed rather than asserted. This file used to open by saying every arm was scored on
+    "the same ... labels"; on ARD-MAV the YOLOMG scorecards carry 22 fewer instances than
+    ours (28,138 against 28,160 -- two per sequence in 11 of the 15 sequences). Immaterial to
+    the AP, and it still made the first sentence of the file untrue.
+    """
+    parts, every = [], set()
+    for arm, budget, label in ROWS:
+        totals = sorted({sum(q.n_gt for q in v["seqs"])
+                         for (a2, b2, _s), v in rows.items() if a2 == arm and b2 == budget})
+        if totals:
+            shown = "100 ep" if (arm == "yolomg" or budget == "e100") else "30 ep"
+            parts.append(f"{label} ({shown}) {' / '.join(f'{t:,}' for t in totals)}")
+            every.update(totals)
+    if not every:
+        return []
+    if len(every) == 1:
+        return [f"Every arm is scored on the same {every.pop():,} GT instances.", ""]
+    return ["GT instances scored, per arm: " + "; ".join(parts)
+            + ". They differ, so they are printed rather than asserted.", ""]
+
+
 def fmt_seeds(vals):
     if not vals:
         return "--"
@@ -190,7 +214,8 @@ def main() -> int:
 
     L = ["# SpeckLock -- results", "",
          "Every number below was produced by this repository: the same videos, splits and "
-         "labels, the same evaluator, and the same confidence floor (0.001) for every arm. "
+         "ground-truth files, the same evaluator, and the same confidence floor (0.001) for every "
+         "arm -- though not always the same scored instances, which are printed per dataset. "
          "The competitor is **YOLOMG** (arXiv:2503.07115), trained by us under its own "
          "published recipe -- 100 epochs at 1280 px against our 30 at 640, i.e. roughly "
          "twice our gradient steps.", "",
@@ -231,6 +256,7 @@ def main() -> int:
                 shown = "100 ep" if (arm == "yolomg" or budget == "e100") else "30 ep"
                 L.append(f"| {label} | {shown} | {fmt_seeds(sd)} |")
         L.append("")
+        L += gt_scored_lines(rows)
 
         L += ["### Paired tests, seed-matched", "",
               "| comparison | seed | d AP | 95% CI | p boot | p perm | p perm, Holm | verdict |",
