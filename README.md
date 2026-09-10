@@ -2,9 +2,14 @@
 
 ### Finding a drone that is three pixels wide, and then flying into it.
 
-A drone at 3–14 px in 720p, seen from a **moving** camera, is invisible to a single-frame
-detector — and to a human. This repository is the record of one idea for fixing that, and of
-everything measured while testing whether the idea holds.
+A drone 3–14 px wide in 720p video is in the frame, but one frame gives a detector little to
+rank it by. On the clip in §3, which no detector here was trained on, a controlled single-frame
+model puts a box on the drone in 57 % of labelled frames when all 5,447 of its detections are
+kept, 96 % of them false: AP 0.159. The same network given three stabilised moments as its
+colour channels scores AP 0.895. This repository is the record of that idea and of everything
+measured while testing it — including where it has not held: that clip's camera is near-static,
+and on two public benchmarks whose cameras move, the stack does not separate from a single frame
+(§6).
 
 [![project site](https://img.shields.io/badge/site-nadavcherry.github.io%2FSpeckLock-2ea043.svg)](https://nadavcherry.github.io/SpeckLock/)
 [![licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue.svg)](LICENSE)
@@ -46,20 +51,26 @@ Two conventions the numbers depend on:
 ## 2 · The idea
 
 Stabilise the video, then stack three grayscale moments — **t−12, t−6, t** — as the R, G and B
-channels of one image. The static world cancels to grey. Anything that moved leaves a coloured
-trail.
+channels of one image. Wherever the stabiliser has aligned the background, the static world
+cancels to grey and anything that moved leaves a coloured trail. The stabiliser estimates one
+global translation per frame (phase correlation), so what it cannot model — rotation, zoom,
+parallax on 3-D structure — leaves trails too, and the network has to learn to ignore them.
 
 <p align="center">
-  <img src="docs/media/temporal_input.jpg" width="900" alt="A single frame in which the drone cannot be seen, beside the three-moment stack in which it can"/>
+  <img src="docs/media/temporal_input.jpg" width="900" alt="A single frame in which the drone is hard to pick out, beside the three-moment stack in which it stands out"/>
   <br/>
-  <em><b>Left:</b> find the drone. You mostly can't, and neither can a single-frame detector — the
-  controlled one in §3 scores AP 0.159. <b>Right:</b> the detector's actual input. <b>Yellow</b> = 12 frames ago,
+  <em><b>Left:</b> find the drone. It is there, but hard to pick out; the controlled single-frame
+  detector in §3 scores AP 0.159 on this video. <b>Right:</b> the detector's actual input. <b>Yellow</b> = 12 frames ago,
   <b>magenta</b> = 6 ago, <b>cyan</b> (circled) = now. The trail even shows its direction of
   flight.</em>
 </p>
 
 The network is an ordinary YOLOv8s with a stride-4 P2 head. **The representation is the
-contribution, not the architecture.**
+contribution, not the architecture** — and not the idea of putting frames in the colour channels,
+which is older: Temporal-YOLOv8 ([van Leeuwen et al., *Sensors* 2024](https://doi.org/10.3390/s24227387))
+stacks three grayscale frames at t−15, t, t+15 into a stock YOLOv8, with no stabilisation. What
+differs here is a **causal** window — no future frames, so it can run live — on **ego-stabilised**
+video.
 
 ---
 
@@ -67,13 +78,31 @@ contribution, not the architecture.**
 
 🟢 **demonstrated.** One controlled comparison, on `10_06.mp4`, scored by this repo's evaluator:
 
-| input representation | AP | 95% CI | recall† | precision† |
-|---|---|---|---|---|
-| single frame, RGB | **0.159** | [0.030, 0.366] | 0.199 | 0.337 |
-| **3-moment temporal stack** | **0.895** | [0.776, 0.976] | 0.840 | 0.946 |
+| input representation | AP | 95% CI | recall† | precision† | recall, every detection‡ | precision, every detection‡ |
+|---|---|---|---|---|---|---|
+| single frame, RGB | **0.159** | [0.030, 0.366] | 0.199 | 0.337 | 0.570 | 0.037 |
+| **3-moment temporal stack** | **0.895** | [0.776, 0.976] | 0.840 | 0.946 | 0.929 | 0.302 |
 
 † at the best-F1 threshold swept on this same video — an oracle operating point, which
 `dronedet/metrics.py` says in writing is not an achievable one. AP is threshold-free.
+‡ counting every detection the model emits — 5,447 for the single frame, 1,075 for the stack:
+the most it can find, and the precision that costs. Each of the 337 labelled frames holds one
+drone, so this recall is the share of labelled frames in which the drone is found at all.
+[Report](work/ablation/REPORT.md).
+
+**What the stack buys, exactly.** The single frame does contain the drone: kept in full, its
+detections find it in 57 % of labelled frames. What one frame lacks is the evidence to rank it
+above everything else — 96 % of those detections are false, and at its best threshold it finds
+20 % of frames, at precision 0.337. The same network on the stack finds 84 %, at precision 0.946,
+and AP, which scores the whole ranking, goes from 0.159 to 0.895; the two 95 % intervals do not
+overlap.
+
+**The camera in this comparison is near-static.** Measured by phase correlation
+([`tools/camera_motion.py`](tools/camera_motion.py)), `10_06`'s background moves a median
+**0.142 px** across the stack's 12-frame window and never more than 0.982 px — under a fifth
+of a pixel, typically, against a drone 4–11 px across. Whether the gain carries over to a
+moving camera is §6: on the two benchmarks where the camera moves, no difference from a single
+frame has been detected.
 
 **Same network, same hyperparameters and seed, same 1280 px, same pipeline, same video** — the two
 checkpoints decode to identical training arguments apart from the dataset path. **One confound
@@ -92,7 +121,8 @@ single-frame arm trained on the same pastes was runnable and has not been run.
 The same effect appears at the smallest sizes on our own 8 px task, where the single-frame control
 scores **0.032** against the temporal stack's **0.430** — a 13× gap on the same network and recipe,
 and here **neither arm trains on pasted instances**, so this is the pair without the copy-paste
-confound. It is one flight and three seeds: a strong direction, not a tested effect.
+confound. It is one flight, from a near-static camera (§6), and three seeds: a strong
+direction, not a tested effect.
 
 ---
 
@@ -177,13 +207,37 @@ from zero — p<sub>perm</sub> between 0.28 and 0.57. YOLOMG's lead at 16–25 p
 correction on all three seeds (adjusted p 0.015); at >25 px it survives on two of three.
 **Only their side is significant.** More test *sequences* would settle it; more seeds cannot.
 
-⚠️ **On the two moving-camera benchmarks, the representation does not separate from a single
-frame.** Temporal against this project's own single-frame control, seed-matched, both training
-budgets: **"no difference" on all 6 ARD-MAV rows and all 6 NPS rows** once the table is
-Holm-corrected ([SUMMARY](work/reports/SUMMARY.md)). Uncorrected, NPS showed the temporal stack
-*worse* on two rows; neither survives. The §3 result, by contrast, is measured on `10_06`, whose
-camera drifts 0.76 px in x and 1.07 px in y across the whole clip
-([measured](docs/research/datasets-and-benchmarks-2026.md)).
+⚠️ **Where the camera moves, the representation has not been shown to beat a single frame.**
+Temporal against this project's own single-frame control, seed-matched, both training budgets:
+**"no difference" on all 6 ARD-MAV rows and all 6 NPS rows** once the table is Holm-corrected
+([SUMMARY](work/reports/SUMMARY.md)). On ARD-MAV every point estimate favours the stack (+0.031
+to +0.054 AP) and none is significant even uncorrected; on NPS two rows were *worse* uncorrected
+(−0.081, −0.097) and neither survives.
+
+How much each camera moves, measured the same way everywhere by
+[`tools/camera_motion.py`](tools/camera_motion.py): frame-to-frame global translation by phase
+correlation, the same motion model the stabiliser removes. It is a lower bound on camera motion —
+rotation, zoom and parallax are not in it. Pooled over frames, not videos:
+
+| data | background motion across the stack's 12-frame window: median | p95 | per frame: median | steps below the stabiliser's trust threshold | target size |
+|---|---|---|---|---|---|
+| `10_06` — the §3 comparison | **0.142 px** | 0.346 px | 0.020 px | 0.0 % | 4–11 px |
+| `07_05` — training video, §7 | **0.157 px** | 0.670 px | 0.023 px | 0.0 % | drone, median 8.0 px |
+| ARD-MAV test, 15 videos | **11.5 px** | 146 px | 0.859 px | 1.0 % | median 12.0 px |
+| NPS-Drones test, 10 clips | **59.6 px** | 175 px | 5.4 px | 6.9 % | median 14.8 px |
+
+([local](work/reports/camera_motion/local.md) · [ARD-MAV](work/reports/camera_motion/ardmav.md) ·
+[NPS](work/reports/camera_motion/nps.md)) On the project's own two videos the background moves
+under a fifth of a pixel across the window — values this small are close to what phase
+correlation resolves, so read them as "well under a pixel", not as a measured drift — and the
+static world cancels almost exactly. On ARD-MAV it moves about one target-width across the same
+window, and on NPS about 4 target-widths. NPS is also where phase correlation is least
+reliable: 6.9 % of its consecutive-frame registrations fall below the response (0.35) at which
+the stabiliser stops trusting one, against 1.0 % on ARD-MAV and none on the project's videos. Wherever the
+camera moves, whatever the stabiliser cannot model stays in the stack as trails. The gain of §3
+was measured on near-static video; on the moving-camera benchmarks, none has been detected.
+Whether that is the stabiliser's residual, the benchmarks' larger targets, or both, nothing run
+here separates.
 
 ⚠️ **dt = 6 is not the measured optimum.** The founding constant — taps at t−12/t−6/t — was swept
 over dt ∈ {2,4,6,8,12}, 3 seeds each, 27 runs. On validation it is a clean inverted U peaking at 6.
@@ -328,8 +382,8 @@ Scorecards: [city](work/pursuit/city/METRICS.md) · [pursuit campaign](work/purs
 
 | | result | n | mark |
 |---|---|---|---|
-| Temporal representation, controlled | **0.159 → 0.895** AP, one augmentation confound (§3) | 1 video · 337 boxes | 🟢 |
-| Temporal vs single-frame, moving camera | **no difference**, ARD-MAV and NPS (§6) | 2 benchmarks × 3 seeds × 2 budgets | ⚠️ |
+| Temporal representation, controlled | **0.159 → 0.895** AP on a near-static camera, one augmentation confound (§3) | 1 video · 337 boxes | 🟢 |
+| Temporal vs single-frame, moving camera | **no difference** on ARD-MAV and NPS, whose backgrounds move a median 11.5 px and 59.6 px per 12 frames (§6) | 2 benchmarks × 3 seeds × 2 budgets | ⚠️ |
 | ARD-MAV, official 15-video split | **0.809** (3 seeds, 100 ep) | 15 videos · 28,160 boxes | 🟢 |
 | Versus YOLOMG, same evaluator | they lead 0.834 / 0.527, significant on no seed after Holm; we lead <10 px, **not significantly** | 2 benchmarks × 3 seeds | 🟢 |
 | Our 8 px task, fine-tuned | **0.840** vs 0.604 | 1 flight × 3 seeds | 🟢 |
@@ -426,6 +480,9 @@ not ship. It refuses rather than emptying the manifest.
 
 ## 21 · Limits
 
+- ⚠️ **The temporal stack's measured gain is on near-static video.** On both benchmarks whose
+  cameras move it does not separate from a single frame (§6). What this repository demonstrates
+  about moving cameras is a pipeline built for them, not a gain measured on them.
 - ⚠️ **Finding a 3 px drone in the rendered city is not solved.** Closure is 24/24 with a perfect
   sensor; the full pipeline has 3 recorded engagements, **all lost**. Five threshold-level changes
   were tried and measured; none closed it. The fix is training on the failing domain, not tuning.
