@@ -2,12 +2,13 @@ cff-version: 1.2.0
 message: "If you use this software, or quote a number measured in it, please cite it as below."
 title: "See the drone, then hit it (SpeckLock)"
 abstract: >-
-  Two halves of one problem. Detection: find a drone that occupies 3-14 pixels in 720p
-  video by stabilising and stacking three grayscale moments, so that the static world
-  cancels and movers leave colour trails. Measured on real, hand-labelled video: on a
-  near-static camera the stack lifts a controlled single-frame AP of 0.159 to 0.895; on two
-  benchmarks whose cameras move (ARD-MAV, NPS-Drones) it does not separate from a single
-  frame. Pursuit: close on that drone with camera-only proportional-navigation guidance,
+  Two halves of one problem. Detection: find a drone 4-15 pixels across (square root of
+  box area) in 720p video by stabilising and stacking three grayscale moments, so that the
+  static world cancels and movers leave colour trails. Measured on real, hand-labelled video:
+  on a near-static camera a temporal-stack model scores AP 0.895 where a controlled
+  single-frame model scores 0.159, with pasted training instances in the temporal arm only;
+  on two benchmarks whose cameras move (ARD-MAV, NPS-Drones) the stack does not separate from
+  a single frame. Pursuit: close on that drone with camera-only proportional-navigation guidance,
   a four-camera 360-degree ring and a mission FSM — measured closed-loop in NVIDIA Isaac
   Sim. There is no flight test in this repository.
 type: software

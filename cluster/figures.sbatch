@@ -17,7 +17,7 @@
 ### rebuilds the temporal stack on the CPU. Nothing here benefits from CUDA.
 ###
 ### Regenerates EVERY figure the repository ships, not only the paper set. The social card,
-### the three architecture drawings and the result charts carry numbers too, and the social
+### the three architecture drawings, the result charts and the gallery page carry numbers too, and the social
 ### card spent weeks showing claims the README had already retracted because nothing ever
 ### re-rendered it. PNGs come from cairosvg when present, otherwise rsvg-convert.
 set -uo pipefail
@@ -30,7 +30,8 @@ for step in "tools/make_paper_figures.py --results work --out docs/media/paper" 
             "tools/make_social_card.py" \
             "tools/make_arch_figures_final.py" \
             "tools/make_arch_figure_system.py" \
-            "tools/make_result_charts.py"; do
+            "tools/make_result_charts.py" \
+            "tools/make_gallery.py"; do
     echo "########## $step"
     /usr/bin/time -v python -u $step || { echo "*** FAILED: $step"; rc=1; }
 done

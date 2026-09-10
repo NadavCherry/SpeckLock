@@ -98,7 +98,7 @@ def main() -> int:
     text(F, 40, 54, "See the drone, then hit it", size=31, weight=700, anchor="start")
     text(F, 40, 82,
          "One camera system &#183; no radar, no datalink, no GPS on the target "
-         "&#183; the target is 3&#8211;14 pixels across",
+         "&#183; the target is 4&#8211;15 pixels across",
          size=15, fill=SUB, anchor="start")
     text(F, W - 40, 48, "the whole method, end to end", size=17, weight=700, anchor="end")
     text(F, W - 40, 72, "github.com/NadavCherry/SpeckLock", size=13, fill=SUB,
@@ -123,7 +123,7 @@ def main() -> int:
     # but the video behind the headline number drifts ~1 px over the whole clip
     # (work/reports/camera_motion/local.md), and the figure must not imply otherwise.
     panel(F, 44, cy, 200, CH, "INPUT", BLUE, "video",
-          ["1280 &#215; 720, 30 fps", "drone 3&#8211;14 px", "camera may move"])
+          ["1280 &#215; 720, 30 fps", "drone 4&#8211;15 px", "camera may move"])
     panel(F, 292, cy, 218, CH, "STAGE 0", EDGE, "stabilise",
           ["phase correlation", "global camera motion", "removed, frame by frame"])
 
@@ -138,7 +138,7 @@ def main() -> int:
     for i, (lab, col) in enumerate([("t-12", YEL), ("t-6", MAG), ("now", CYA)]):
         text(F, x + 152 + i * 52, cy + 88, lab, size=14.5, weight=700, fill=col,
              anchor="start")
-    text(F, x + 310, cy + 88, "= R, G, B", size=13.5, anchor="start", op=0.85)
+    text(F, x + 310, cy + 88, "= B, G, R", size=13.5, anchor="start", op=0.85)
     block(F, tx, cy + 116,
           ["the static world cancels to grey;", "only what moved keeps its colour"])
     footnote(F, x, cy + CH + 18, w,

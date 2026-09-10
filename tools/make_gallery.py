@@ -32,7 +32,7 @@ DETECTION = [
          blurb="The same 19.7 s of unseen test video through three systems at once. Left: a "
                "YOLO26n trained on a real multi-scene drone dataset. Middle and right: the two "
                "shipped models.",
-         facts="1280&#215;720 &#183; 591 frames &#183; the drone is 3&#8211;14 px throughout"),
+         facts="1280&#215;720 &#183; 591 frames &#183; the drone is 4&#8211;11 px where labelled"),
     dict(mp4="media/10_06_pcmax_tracks.mp4",
          title="PC-MAX on the unseen test video",
          blurb="The accuracy-first desktop profile: three detection streams fused by centre "

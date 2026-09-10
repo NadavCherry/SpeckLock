@@ -2,14 +2,15 @@
 
 ### Finding a drone that is three pixels wide, and then flying into it.
 
-A drone 3–14 px wide in 720p video is in the frame, but one frame gives a detector little to
-rank it by. On the clip in §3, which no detector here was trained on, a controlled single-frame
-model puts a box on the drone in 57 % of labelled frames when all 5,447 of its detections are
-kept, 96 % of them false: AP 0.159. The same network given three stabilised moments as its
-colour channels scores AP 0.895. This repository is the record of that idea and of everything
-measured while testing it — including where it has not held: that clip's camera is near-static,
-and on two public benchmarks whose cameras move, the stack does not separate from a single frame
-(§6).
+A drone 4–15 px across (√area) in 720p video is hard for a single-frame detector both to find
+and to rank. On the clip in §3, which neither arm of that comparison was trained on, a controlled
+single-frame model finds the drone in 57 % of labelled frames even with every detection kept —
+96 % of its detections in scored frames are false — and scores AP 0.159. The same network given
+three stabilised moments as its colour channels, and trained with pasted drone and bird instances
+the single-frame arm did not get (§3), scores AP 0.895. This repository is the record of that idea
+and of everything measured while testing it — including where it has not held: that clip's camera
+is near-static, and on two public benchmarks whose cameras move, the stack does not separate from a
+single frame (§6).
 
 [![project site](https://img.shields.io/badge/site-nadavcherry.github.io%2FSpeckLock-2ea043.svg)](https://nadavcherry.github.io/SpeckLock/)
 [![licence: AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue.svg)](LICENSE)
@@ -50,8 +51,8 @@ Two conventions the numbers depend on:
 
 ## 2 · The idea
 
-Stabilise the video, then stack three grayscale moments — **t−12, t−6, t** — as the R, G and B
-channels of one image. Wherever the stabiliser has aligned the background, the static world
+Stabilise the video, then stack three grayscale moments — **t−12, t−6, t** — as the blue, green
+and red channels of one image, in that order. Wherever the stabiliser has aligned the background, the static world
 cancels to grey and anything that moved leaves a coloured trail. The stabiliser estimates one
 global translation per frame (phase correlation), so what it cannot model — rotation, zoom,
 parallax on 3-D structure — leaves trails too, and the network has to learn to ignore them.
@@ -60,15 +61,16 @@ parallax on 3-D structure — leaves trails too, and the network has to learn to
   <img src="docs/media/temporal_input.jpg" width="900" alt="A single frame in which the drone is hard to pick out, beside the three-moment stack in which it stands out"/>
   <br/>
   <em><b>Left:</b> find the drone. It is there, but hard to pick out; the controlled single-frame
-  detector in §3 scores AP 0.159 on this video. <b>Right:</b> the detector's actual input. <b>Yellow</b> = 12 frames ago,
+  detector in §3 scores AP 0.159 on <code>10_06</code>. <b>Right:</b> the detector's actual input. <b>Yellow</b> = 12 frames ago,
   <b>magenta</b> = 6 ago, <b>cyan</b> (circled) = now. The trail even shows its direction of
   flight.</em>
 </p>
 
-The network is an ordinary YOLOv8s with a stride-4 P2 head. **The representation is the
+The network is an ordinary YOLOv8 with a stride-4 P2 head — nano in the real-time pair of §3, on
+full 1280 px frames; small on the benchmarks' 640 px tiles. **The representation is the
 contribution, not the architecture** — and not the idea of putting frames in the colour channels,
 which is older: Temporal-YOLOv8 ([van Leeuwen et al., *Sensors* 2024](https://doi.org/10.3390/s24227387))
-stacks three grayscale frames at t−15, t, t+15 into a stock YOLOv8, with no stabilisation. What
+stacks three grayscale frames at about t−15, t, t+15 into a stock YOLOv8, with no stabilisation. What
 differs here is a **causal** window — no future frames, so it can run live — on **ego-stabilised**
 video.
 
@@ -85,17 +87,19 @@ video.
 
 † at the best-F1 threshold swept on this same video — an oracle operating point, which
 `dronedet/metrics.py` says in writing is not an achievable one. AP is threshold-free.
-‡ counting every detection the model emits — 5,447 for the single frame, 1,075 for the stack:
-the most it can find, and the precision that costs. Each of the 337 labelled frames holds one
-drone, so this recall is the share of labelled frames in which the drone is found at all.
-[Report](work/ablation/REPORT.md).
+‡ counting every detection the model emits: the most it can find, and the precision that costs.
+Precision is over detections in scored frames — 5,134 of the single frame's 5,447 and 1,038 of the
+stack's 1,075; the rest fall in the 24 frames the ground truth leaves unscored. Each of the 337
+scored frames holds one drone, so this recall is the share of them in which the drone is found at
+all. [Report](work/ablation/REPORT.md).
 
-**What the stack buys, exactly.** The single frame does contain the drone: kept in full, its
-detections find it in 57 % of labelled frames. What one frame lacks is the evidence to rank it
-above everything else — 96 % of those detections are false, and at its best threshold it finds
-20 % of frames, at precision 0.337. The same network on the stack finds 84 %, at precision 0.946,
-and AP, which scores the whole ranking, goes from 0.159 to 0.895; the two 95 % intervals do not
-overlap.
+**What the difference consists of** — two things, and the confound below applies to both. The
+single frame never finds the drone in 43 % of labelled frames, even with every detection kept, so
+its AP could not exceed 0.570 however it ranked; the stack misses 7 %. And where the single frame
+does find the drone, it ranks it among its false alarms: 96 % of its detections in scored frames
+are false, and at its best threshold it finds 20 % of frames at precision 0.337, against the
+stack's 84 % at 0.946. AP, which scores the whole ranking, goes from 0.159 to 0.895; the two 95 %
+intervals do not overlap.
 
 **The camera in this comparison is near-static.** Measured by phase correlation
 ([`tools/camera_motion.py`](tools/camera_motion.py)), `10_06`'s background moves a median
@@ -110,7 +114,8 @@ remains, and it is not small:** only the temporal arm's training set carries pas
 instances (`realtime/tools/make_datasets_rt.py` applies copy-paste only `if temporal:`), and
 [`realtime/README.md`](realtime/README.md) credits that augmentation with a large share of the
 temporal arm's gain. So this gap is the representation *together with* that augmentation. A
-single-frame arm trained on the same pastes was runnable and has not been run.
+single-frame arm trained on pasted instances — static ones, since a velocity trail cannot be
+pasted into one frame — has not been run.
 
 > ⚠️ An earlier version of this table compared an off-the-shelf detector at 1760 px against this
 > pipeline at 1280 — different architecture, different training corpus **and** different
@@ -118,11 +123,15 @@ single-frame arm trained on the same pastes was runnable and has not been run.
 > it. The uncontrolled comparison is still run, and still labelled as uncontrolled, in
 > [`work/ablation/REPORT.md`](work/ablation/REPORT.md).
 
-The same effect appears at the smallest sizes on our own 8 px task, where the single-frame control
-scores **0.032** against the temporal stack's **0.430** — a 13× gap on the same network and recipe,
-and here **neither arm trains on pasted instances**, so this is the pair without the copy-paste
-confound. It is one flight, from a near-static camera (§6), and three seeds: a strong
-direction, not a tested effect.
+A gap of the same kind appears on the project's own 8 px task, where **neither arm trains on
+pasted instances** — the pair without the copy-paste confound, on the same network and recipe.
+Under this project's centre-distance matching the single-frame control reaches AP 0.061, 0.291
+and 0.094 on three seeds and the temporal stack 0.834, 0.914 and 0.773
+([seed 0](work/reports/local_ft_10_06_seed0.md)); below 8 px, at IoU ≥ 0.5 over 123 instances,
+0.032 ± 0.056 against 0.430 ± 0.088 ([size curve](docs/reports/size-crossover.md)). It is one
+flight, from a near-static camera (§6): within it the difference is significant on every seed
+(moving-block bootstrap over 30-frame blocks); across flights it is untested, because there is
+one.
 
 ---
 
@@ -225,8 +234,10 @@ there no bin differs after correction.
 
 How much each camera moves, measured the same way everywhere by
 [`tools/camera_motion.py`](tools/camera_motion.py): frame-to-frame global translation by phase
-correlation, the same motion model the stabiliser removes. It is a lower bound on camera motion —
-rotation, zoom and parallax are not in it. Pooled over frames, not videos:
+correlation, the same motion model the stabiliser removes. It measures global
+translation only — rotation, zoom and parallax are not in it, so on a moving camera it
+understates the motion, while on a near-static one the estimator's step-to-step noise, summed
+over 12 steps, inflates it. Pooled over frames, not videos:
 
 | data | background motion across the stack's 12-frame window: median | p95 | per frame: median | steps below the stabiliser's trust threshold | target size |
 |---|---|---|---|---|---|
@@ -236,17 +247,18 @@ rotation, zoom and parallax are not in it. Pooled over frames, not videos:
 | NPS-Drones test, 10 clips | **59.6 px** | 175 px | 5.4 px | 6.9 % | median 14.8 px |
 
 ([local](work/reports/camera_motion/local.md) · [ARD-MAV](work/reports/camera_motion/ardmav.md) ·
-[NPS](work/reports/camera_motion/nps.md)) On the project's own two videos the background moves
-under a fifth of a pixel across the window — values this small are close to what phase
-correlation resolves, so read them as "well under a pixel", not as a measured drift — and the
-static world cancels almost exactly. On ARD-MAV it moves about one target-width across the same
+[NPS](work/reports/camera_motion/nps.md)) On the project's own two videos the median background motion across the window is
+under a fifth of a pixel (p95 0.35 and 0.67 px; the largest, on `07_05`, 2.6 px). On ARD-MAV it moves about one target-width across the same
 window, and on NPS about 4 target-widths. NPS is also where phase correlation is least
 reliable: 6.9 % of its consecutive-frame registrations fall below the response (0.35) at which
 the stabiliser stops trusting one, against 1.0 % on ARD-MAV and none on the project's videos. Wherever the
 camera moves, whatever the stabiliser cannot model stays in the stack as trails. The gain of §3
 was measured on near-static video; on the moving-camera benchmarks, none has been detected.
-Whether that is the stabiliser's residual, the benchmarks' larger targets, or both, nothing run
-here separates.
+Whether that is the stabiliser's residual or anything else the two conditions differ in, nothing
+run here separates: the §3 pair is a nano network on full 1280 px frames, with pasted instances in
+its temporal arm and scored by centre distance; the benchmark pairs are a small network on 640 px
+tiles, without pastes, scored at IoU ≥ 0.5, on larger targets. The paste-free local pair (§3),
+also near-static, shows a large gain too.
 
 ⚠️ **dt = 6 is not the measured optimum.** The founding constant — taps at t−12/t−6/t — was swept
 over dt ∈ {2,4,6,8,12}, 3 seeds each, 27 runs. On validation it is a clean inverted U peaking at 6.
@@ -506,8 +518,9 @@ not ship. It refuses rather than emptying the manifest.
   drift.
 - ⚠️ **Range assumes a known target size.** `range = f · S / s` — no GPS on the target, no
   rangefinder, and no way to range an aircraft whose span you have guessed wrong.
-- ⚠️ **`10_06` is a development set, not an unseen one.** No dataset builder reads it, so the
-  *weights* are clean — but six track-classifier constants were hand-set against it.
+- ⚠️ **`10_06` is a development set, not an unseen one.** The builder behind the §3 pair never
+  reads it, so those *weights* are clean (the reverse-direction local arms do train on it) — but
+  six track-classifier constants were hand-set against it.
 
 ## 22 · Citation
 

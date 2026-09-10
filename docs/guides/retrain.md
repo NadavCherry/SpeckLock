@@ -20,7 +20,7 @@ Each is an ordinary Ultralytics dataset (`images/{train,val}/`, `labels/{train,v
 
 What's *in* each image is the whole tiny-object recipe (details in the [reports](../reports/)):
 
-- **temporal stacking** — three stabilized grayscale moments as R/G/B, so movers show as colored trails;
+- **temporal stacking** — three stabilized grayscale moments as the three colour channels, so movers show as colored trails;
 - **copy-paste augmentation** — patches pasted **per channel along a simulated velocity** (rigid for drones incl. hover; faster + size-jittered for birds to mimic wing flap);
 - **atmospheric-haze jitter** — distant targets fade toward the background;
 - a **dim bush-phase patch bank** + **hard negatives** (v3), and **sub-pixel trails** for slow drifters;

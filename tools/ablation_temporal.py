@@ -154,8 +154,10 @@ def experiment_single_vs_temporal(gt_path: Path, block: int, resamples: int) -> 
               "says in writing is not an achievable one. AP is threshold-free.",
               "",
               "‡ Counting every detection the model emits: the most it can ever find, and the "
-              "precision that costs. Each labelled frame of `10_06` holds one drone, so this "
-              "recall is the share of labelled frames in which the drone is found at all."]
+              "precision that costs. Precision counts only detections in frames the ground truth "
+              "scores; the detections column counts every one. Each labelled frame of `10_06` holds "
+              "one drone, so this recall is the share of labelled frames in which the drone is "
+              "found at all."]
 
     lines += [
         "",

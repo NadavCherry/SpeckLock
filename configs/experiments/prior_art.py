@@ -18,8 +18,9 @@ SPECIFIED BY THE PAPER, AND REPRODUCED
   * The window: "Assuming a 30-frames-per-second (FPS) source video, around 15 frames are
     sampled before and after the current frame" -- taps t-15, t, t+15, grayscale, in the three
     channels, one fixed frame offset on every clip, as the paired SpeckLock arm uses. Every clip
-    either arm trains on runs at 28.0-29.97 fps (ARD-MAV 29.77-29.97, NPS 28.0-29.97; the local
-    videos 30), so there 15 frames is 0.50-0.54 s. The window is NON-CAUSAL: it reads about
+    either arm trains on runs at 28.0-29.97 fps (ARD-MAV 29.97, NPS 28.0-29.97, the local videos
+    30; one ARD-MAV test video runs at 29.77), so there 15 frames is 0.50-0.54 s
+    (work/reports/prior_art/frame_rates.md). The window is NON-CAUSAL: it reads about
     half a second of the future, which a deployed interceptor cannot.
   * No camera-motion compensation. Its videos are "only stationary-recorded", and the paper
     expects that from moving platforms "the current setup for temporal YOLO will probably not
@@ -38,7 +39,8 @@ NOT REPRODUCED, AND WHY
   * Its 15-pixel box enlargement ("bounding boxes with a width or height below 15 pixels are
     scaled" to at least 15), which its own ablation credits with 0.166 mAP -- under its IoU >= 0.01
     metric. Here both arms are scored at IoU >= 0.5 against true extents, and a 15 px box centred
-    on a target narrower than about 10.6 px cannot reach 0.5 (a 6 px target: 36/225 = 0.16).
+    on a target whose square-root area is under about 10.6 px cannot reach 0.5 (a 6 px square:
+    36/225 = 0.16).
     Enlarged labels would make ARD-MAV's <8 px and 8-10 px bins unwinnable by construction, so
     both arms train on true extents (min_side 0).
   * Its "balanced mosaicking" -- crops of 420, 750 and 1920 px, downscaling floored at 10x10 px
@@ -52,11 +54,11 @@ NOT REPRODUCED, AND WHY
 
 MATCHED TO THE PAIRED SPECKLOCK ARM, because the paper does not specify it
   * 640 px tiles, the same stride, splits and labels, batch 8, patience 25.
-  * The learning-rate schedule: Ultralytics' cosine schedule (cos_lr=True), which every arm in
-    this repository uses. The paper names "the automatic learning rate scheduler developed by
+  * The learning-rate schedule: Ultralytics' cosine schedule (cos_lr=True), which every arm
+    defined in configs/experiments uses, the paired SpeckLock arm included. The paper names "the automatic learning rate scheduler developed by
     Ultralytics" without saying which; Ultralytics' own default is linear.
 
-Two of the ten NPS TEST clips run at 59.9 fps (named in the build log and in
+Two of the ten NPS TEST clips run at 59.9 fps (work/reports/prior_art/frame_rates.md;
 tools/make_summary.py). On them 15 frames is 0.25 s, as SpeckLock's 6 frames is 0.10 s: both
 arms meet half the window they were trained on. Declared before any scorecard of this arm
 existed: they are scored like every other clip, and SUMMARY.md also prints the NPS difference
