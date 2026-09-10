@@ -27,28 +27,35 @@ MEDIA = "media/"
 # Full-length runs that live in docs/media already -- not produced by the
 # publisher, so they are described here.
 DETECTION = [
+    # These four once carried "unseen test video", "AP / F1 = 1.000 . zero false positives" and
+    # "~74 fps end to end" after the page itself had been corrected by hand, so re-running this
+    # generator put retracted claims back. dronedet/tests/test_gallery_generator.py now fails
+    # unless the committed page is exactly what this renders.
     dict(mp4="media/10_06_baseline_vs_pcmax_vs_edgert.mp4",
          title="Baseline &#124; PC-MAX &#124; EDGE-RT, side by side",
-         blurb="The same 19.7 s of unseen test video through three systems at once. Left: a "
-               "YOLO26n trained on a real multi-scene drone dataset. Middle and right: the two "
-               "shipped models.",
+         blurb="The same 19.7 s of 10_06 &#8212; a development video &#8212; through three systems "
+               "at once. Left: a YOLO26n trained on a real multi-scene drone dataset. Middle and "
+               "right: the two shipped models.",
          facts="1280&#215;720 &#183; 591 frames &#183; the drone is 4&#8211;11 px where labelled"),
     dict(mp4="media/10_06_pcmax_tracks.mp4",
-         title="PC-MAX on the unseen test video",
+         title="PC-MAX on 10_06, a development video",
          blurb="The accuracy-first desktop profile: three detection streams fused by centre "
                "agreement, then a Kalman tracker and a track-level classifier.",
-         facts="AP / F1 = 1.000 &#183; zero false positives &#183; ~4 fps on an RTX 5070"),
+         facts="per-frame AP 0.846 &#183; 4 sustained false drone tracks &#183; ~4 fps on an RTX 5070"),
     dict(mp4="media/10_06_edgert_tracks.mp4",
-         title="EDGE-RT on the unseen test video",
+         title="EDGE-RT on 10_06, a development video",
          blurb="The whole pipeline distilled into one YOLOv8-nano-P2 reading the stabilised "
                "3-moment stack full-frame, under TensorRT FP16. One network is the pipeline.",
-         facts="AP / F1 = 1.000 &#183; ~74 fps end to end"),
+         facts="per-frame AP 0.876 &#183; 58.9 fps on an RTX 4090, same pass"),
+    # work/ablation/REPORT.md 1b and work/ablation/singleframe_1006.json: 40 detections, 39 of
+    # them in frames 324-360; recall 0.110 (37 of 337 labelled frames); precision 0.925 counting
+    # every detection (3 false); one detection before frame 324, at conf 0.022; top score 0.861.
     dict(mp4="media/10_06_baseline_dets.mp4",
          title="The baseline on the same video",
-         blurb="Single-frame appearance. Excellent against open sky in the final second "
-               "(conf 0.6&#8211;0.84, zero false positives) and silent everywhere else, even at "
-               "conf 0.02.",
-         facts="12.5% flight coverage &#183; nothing below the treeline"),
+         blurb="Single-frame appearance. 39 of its 40 detections fall in the final second, "
+               "against open sky; below the treeline it emits one, at conf 0.022. It finds the "
+               "drone in 37 of 337 labelled frames, and 3 of its 40 detections are false.",
+         facts="12.5% flight coverage &#183; recall 0.110 &#183; precision 0.925, every detection counted"),
     dict(mp4="media/07_05_round2_tracks.mp4",
          title="The training video, with the hand labels painted",
          blurb="Every frame of 07_05 was labelled by hand; this is the authoritative ground "
@@ -195,8 +202,8 @@ def facts_line(f: dict) -> str:
     return " &#183; ".join(bits)
 
 
-def main() -> int:
-    manifest = json.loads((DOCS / "media" / "showcase.json").read_text(encoding="utf-8"))
+def render(manifest: dict) -> str:
+    """The whole page, as a string -- so a test can hold the committed page to it."""
     out = [HEAD]
 
     out.append('<h2>City defence &mdash; the four-camera ring'
@@ -254,8 +261,13 @@ def main() -> int:
     out.append("</div>")
 
     out.append(FOOT)
+    return "\n".join(out)
+
+
+def main() -> int:
+    manifest = json.loads((DOCS / "media" / "showcase.json").read_text(encoding="utf-8"))
     path = DOCS / "gallery.html"
-    path.write_text("\n".join(out), encoding="utf-8")
+    path.write_text(render(manifest), encoding="utf-8")
     n = sum(len(manifest.get(k, [])) for k in ("city", "chase")) + len(DETECTION)
     print(f"wrote {path}  --  {n} clips")
     return 0
