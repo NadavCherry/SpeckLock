@@ -28,19 +28,21 @@ Bins excluded from the crossover test: `>25 px` — fewer than 50 GT instances, 
 
 ## Is the difference real? Paired, seed-matched, over sequences
 
-Paired bootstrap **and** permutation over the 10 shared sequences; a bin is called significant only when both agree, matching `tools/make_summary.py`. Seeds are matched pairwise.
+Paired bootstrap **and** permutation over the 10 shared sequences; a bin is called significant only when both agree after a Holm correction across this table, matching `tools/make_summary.py`. Seeds are matched pairwise.
 
-| bin | seed | d AP | 95% CI | p perm | verdict |
-|---|---|---|---|---|---|
-| 10-16 px | 0 | -0.018 | [-0.148, +0.052] | 0.7013 | no difference |
-| 10-16 px | 1 | +0.027 | [-0.127, +0.122] | 0.6723 | no difference |
-| 10-16 px | 2 | -0.072 | [-0.174, -0.020] | 0.0440 | **significant** |
-| 16-25 px | 0 | -0.027 | [-0.230, +0.109] | 0.7353 | no difference |
-| 16-25 px | 1 | -0.033 | [-0.125, +0.062] | 0.4605 | no difference |
-| 16-25 px | 2 | -0.205 | [-0.302, -0.076] | 0.0020 | **significant** |
-| >25 px | 0 | +0.001 | [-0.011, +0.004] | 0.8591 | no difference |
-| >25 px | 1 | +0.002 | [+0.000, +0.012] | 0.9860 | no difference |
-| >25 px | 2 | -0.003 | [-0.027, +0.000] | 0.4236 | no difference |
+| bin | seed | d AP | 95% CI | p perm | p perm, Holm | verdict |
+|---|---|---|---|---|---|---|
+| 10-16 px | 0 | -0.018 | [-0.148, +0.052] | 0.7013 | 1.0000 | no difference |
+| 10-16 px | 1 | +0.027 | [-0.127, +0.122] | 0.6723 | 1.0000 | no difference |
+| 10-16 px | 2 | -0.072 | [-0.174, -0.020] | 0.0440 | 0.3516 | no difference |
+| 16-25 px | 0 | -0.027 | [-0.230, +0.109] | 0.7353 | 1.0000 | no difference |
+| 16-25 px | 1 | -0.033 | [-0.125, +0.062] | 0.4605 | 1.0000 | no difference |
+| 16-25 px | 2 | -0.205 | [-0.302, -0.076] | 0.0020 | 0.0180 | **significant** |
+| >25 px | 0 | +0.001 | [-0.011, +0.004] | 0.8591 | 1.0000 | no difference |
+| >25 px | 1 | +0.002 | [+0.000, +0.012] | 0.9860 | 1.0000 | no difference |
+| >25 px | 2 | -0.003 | [-0.027, +0.000] | 0.4236 | 1.0000 | no difference |
+
+Holm over the 9 rows of this table removed the mark from: 10-16 px seed 2.
 
 **No bin where ours wins significantly on every seed.**
 

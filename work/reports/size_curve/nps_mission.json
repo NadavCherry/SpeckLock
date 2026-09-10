@@ -212,7 +212,9 @@
       "hi": 0.05238259729288516,
       "p_perm": 0.7012987012987013,
       "significant": false,
-      "favours": "yolomg"
+      "favours": "yolomg",
+      "significant_raw": false,
+      "p_perm_holm": 1.0
     },
     {
       "bin": "10-16 px",
@@ -222,7 +224,9 @@
       "hi": 0.12191614759164594,
       "p_perm": 0.6723276723276723,
       "significant": false,
-      "favours": "ours"
+      "favours": "ours",
+      "significant_raw": false,
+      "p_perm_holm": 1.0
     },
     {
       "bin": "10-16 px",
@@ -231,8 +235,10 @@
       "lo": -0.17415653063309527,
       "hi": -0.019834539668539687,
       "p_perm": 0.04395604395604396,
-      "significant": true,
-      "favours": "yolomg"
+      "significant": false,
+      "favours": "yolomg",
+      "significant_raw": true,
+      "p_perm_holm": 0.3516483516483517
     },
     {
       "bin": "16-25 px",
@@ -242,7 +248,9 @@
       "hi": 0.10853182276106767,
       "p_perm": 0.7352647352647352,
       "significant": false,
-      "favours": "yolomg"
+      "favours": "yolomg",
+      "significant_raw": false,
+      "p_perm_holm": 1.0
     },
     {
       "bin": "16-25 px",
@@ -252,7 +260,9 @@
       "hi": 0.06215963059978852,
       "p_perm": 0.46053946053946054,
       "significant": false,
-      "favours": "yolomg"
+      "favours": "yolomg",
+      "significant_raw": false,
+      "p_perm_holm": 1.0
     },
     {
       "bin": "16-25 px",
@@ -262,7 +272,9 @@
       "hi": -0.07554844678887838,
       "p_perm": 0.001998001998001998,
       "significant": true,
-      "favours": "yolomg"
+      "favours": "yolomg",
+      "significant_raw": true,
+      "p_perm_holm": 0.017982017982017984
     },
     {
       "bin": ">25 px",
@@ -272,7 +284,9 @@
       "hi": 0.004225961886774721,
       "p_perm": 0.8591408591408591,
       "significant": false,
-      "favours": "ours"
+      "favours": "ours",
+      "significant_raw": false,
+      "p_perm_holm": 1.0
     },
     {
       "bin": ">25 px",
@@ -282,7 +296,9 @@
       "hi": 0.012348034756358846,
       "p_perm": 0.986013986013986,
       "significant": false,
-      "favours": "ours"
+      "favours": "ours",
+      "significant_raw": false,
+      "p_perm_holm": 1.0
     },
     {
       "bin": ">25 px",
@@ -292,7 +308,9 @@
       "hi": 0.0,
       "p_perm": 0.42357642357642356,
       "significant": false,
-      "favours": "yolomg"
+      "favours": "yolomg",
+      "significant_raw": false,
+      "p_perm_holm": 1.0
     }
   ]
 }

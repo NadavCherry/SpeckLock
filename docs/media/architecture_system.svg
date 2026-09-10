@@ -65,16 +65,16 @@
 <rect x="1678" y="174" width="318" height="30" rx="10" fill="#388bfd"/>
 <rect x="1678" y="192" width="318" height="12" fill="#388bfd"/>
 <text x="1837.0" y="194" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff" letter-spacing="0.8">RESULT</text>
-<text x="1837.0" y="230" text-anchor="middle" font-size="16.5" font-weight="700" fill="#e6edf3" opacity="1.0">AP / F1 = 1.000</text>
-<text x="1837.0" y="256" text-anchor="middle" font-size="13.5" font-weight="600" fill="#e6edf3" opacity="1.0">on the unseen test video</text>
-<text x="1837.0" y="276" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">zero false positives</text>
-<text x="1837.0" y="296" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">4 fps desktop &#183; 74 fps edge</text>
+<text x="1837.0" y="230" text-anchor="middle" font-size="16.5" font-weight="700" fill="#e6edf3" opacity="1.0">AP 0.876 at 58.9 fps</text>
+<text x="1837.0" y="256" text-anchor="middle" font-size="13.5" font-weight="600" fill="#e6edf3" opacity="1.0">EDGE-RT on 10_06, RTX 4090</text>
+<text x="1837.0" y="276" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">10_06 is a development video</text>
+<text x="1837.0" y="296" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">accuracy and speed in one pass</text>
 <path d="M 251 255 L 283 255" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <path d="M 517 255 L 549 255" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <path d="M 949 255 L 981 255" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <path d="M 1293 255 L 1325 255" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <path d="M 1637 255 L 1669 255" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
-<text x="1020.0" y="388" text-anchor="middle" font-size="14" font-weight="400" fill="#9198a1" opacity="1.0">Same network, same recipe: single-frame input scores mAP50 0.06 and the temporal stack scores 0.83. The representation is the breakthrough, not the network.</text>
+<text x="1020.0" y="388" text-anchor="middle" font-size="14" font-weight="400" fill="#9198a1" opacity="1.0">Same network and settings, on 10_06: single-frame input scores AP 0.159 and the temporal stack 0.895 &#8212; though only the temporal arm trains on pasted instances.</text>
 <path d="M 750 410 L 750 444" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <text x="768" y="436" text-anchor="start" font-size="13" font-weight="400" fill="#9198a1" opacity="1.0">the same finding on a different mount: at 3 px, only motion sees it</text>
 <rect x="20" y="444" width="2000" height="330" rx="14" fill="#11161d" stroke="#30363d" stroke-width="1.5"/>
@@ -192,10 +192,10 @@
 <rect x="1416" y="872" width="580" height="30" rx="10" fill="#388bfd"/>
 <rect x="1416" y="890" width="580" height="12" fill="#388bfd"/>
 <text x="1706.0" y="892" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff" letter-spacing="0.8">RESULT &#183; CITY DEFENCE</text>
-<text x="1706.0" y="928" text-anchor="middle" font-size="16.5" font-weight="700" fill="#e6edf3" opacity="1.0">24 / 24 intercepted &#183; 0 buildings hit</text>
-<text x="1706.0" y="954" text-anchor="middle" font-size="13.5" font-weight="600" fill="#e6edf3" opacity="1.0">mean true closest approach 0.080 m &#8212; a sixth of the airframe</text>
-<text x="1706.0" y="974" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">median 4.29 s to spare before the strike would have landed</text>
-<text x="1706.0" y="994" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">24 arrival bearings, one every 15&#176; of the compass</text>
+<text x="1706.0" y="928" text-anchor="middle" font-size="16.5" font-weight="700" fill="#e6edf3" opacity="1.0">24 / 24 with a perfect sensor &#183; 0 / 3 real</text>
+<text x="1706.0" y="954" text-anchor="middle" font-size="13.5" font-weight="600" fill="#e6edf3" opacity="1.0">detector &#8220;oracle&#8221;: the simulator's own box, zero latency</text>
+<text x="1706.0" y="974" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">it measures the guidance law, not the seeker</text>
+<text x="1706.0" y="994" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">on the seeker's own detections: 0 / 3, all struck</text>
 <path d="M 517 951 L 541 951" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <path d="M 1023 951 L 1047 951" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <path d="M 1383 951 L 1407 951" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
@@ -212,7 +212,7 @@
 <text x="354.0" y="1182" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff" letter-spacing="0.8">DETECTION &#183; REAL VIDEO</text>
 <text x="354.0" y="1214" text-anchor="middle" font-size="16.5" font-weight="700" fill="#e6edf3" opacity="1.0">centre distance, &#964; = 12 px</text>
 <text x="354.0" y="1238" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">IoU is meaningless on a 6 px box &#8212; a pixel of shift swings it wildly</text>
-<text x="354.0" y="1257" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">scored on a video never trained on and never used to pick a model</text>
+<text x="354.0" y="1257" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">10_06 is a development video; ARD-MAV / NPS use their own IoU 0.5</text>
 <rect x="700" y="1162" width="620" height="122" rx="10" fill="#161b22" stroke="#30363d" stroke-width="2"/>
 <rect x="700" y="1162" width="620" height="30" rx="10" fill="#d29922"/>
 <rect x="700" y="1180" width="620" height="12" fill="#d29922"/>
@@ -226,6 +226,6 @@
 <text x="1676.0" y="1182" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff" letter-spacing="0.8">THE HARNESSES</text>
 <text x="1676.0" y="1214" text-anchor="middle" font-size="16.5" font-weight="700" fill="#e6edf3" opacity="1.0">two loops and a test suite</text>
 <text x="1676.0" y="1238" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">Isaac Sim at 20 Hz, and an arithmetic sandbox: 120 scenarios in 1.2 s</text>
-<text x="1676.0" y="1257" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">540 unit tests over geometry, guidance, dynamics and the ring, in 22 s</text>
+<text x="1676.0" y="1257" text-anchor="middle" font-size="13.5" font-weight="400" fill="#e6edf3" opacity="0.88">a unit-test suite over geometry, guidance, dynamics, the ring and scoring</text>
 <text x="1020.0" y="1306" text-anchor="middle" font-size="13" font-weight="400" fill="#9198a1" opacity="1.0">Detection is measured on real, hand-labelled video. Interception is measured in a closed-loop Isaac Sim renderer &#8212; there is no flight test here, and this figure says so on purpose.</text>
 </svg>

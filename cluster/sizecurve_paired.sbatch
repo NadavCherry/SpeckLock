@@ -10,7 +10,8 @@
 ### no paired table; re-running them would spend an hour to change nothing.
 ###
 ### Sized from the last measured run, cluster_logs/sizecurve-20894039.out (/usr/bin/time):
-### nps/mission 40:00 at 608 MB, ardmav/mission 1:23:00 at 525 MB -- but those are the
+### nps/mission 45:04 at 624,708 kB, ardmav/mission 1:18:45 at 511,676 kB (jobs 21171635,
+### 21171760) -- but those are the
 ### size_curve STEP, and the job's peak is the suite gate that runs first. Sized from the step
 ### alone (650M), an ardmav run was OOM-killed inside the gate (job 21171636). Measured
 ### since, under /usr/bin/time: the gate peaks at 743,428 kB (job 21171760), so it cleared

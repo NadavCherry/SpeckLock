@@ -4,7 +4,7 @@
              markerWidth="7" markerHeight="7" orient="auto-start-reverse">
              <path d="M 0 1 L 9 5 L 0 9 z" fill="#8b949e"/></marker></defs>
 <text x="1810" y="40" text-anchor="end" font-size="19" font-weight="700" fill="#e6edf3">PC-MAX</text>
-<text x="1810" y="60" text-anchor="end" font-size="12.5" fill="#9198a1">accuracy-first desktop profile &#183; FINAL/run_final.py --profile pc-max</text>
+<text x="1810" y="60" text-anchor="end" font-size="12.5" fill="#9198a1">accuracy-first desktop profile &#183; final/run_final.py --profile pc-max</text>
 <rect x="30" y="90" width="170" height="130" rx="10" fill="#161b22" stroke="#30363d" stroke-width="2"/>
 <rect x="30" y="90" width="170" height="30" rx="10" fill="#388bfd"/>
 <rect x="30" y="108" width="170" height="12" fill="#388bfd"/>
@@ -122,5 +122,5 @@
 <path d="M 1130 645 L 1198 645" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <text x="1198" y="631" text-anchor="middle" font-size="12.5" fill="#9198a1">tracks</text>
 <path d="M 1500 645 L 1538 645" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
-<text x="920.0" y="784" text-anchor="middle" font-size="13" fill="#9198a1">unseen test video: tracked AP / F1 / R / P = 1.000, zero false alarms &#183; ~4 fps on an RTX 5070 laptop &#8212; the accuracy-first profile</text>
+<text x="920.0" y="784" text-anchor="middle" font-size="13" fill="#9198a1">10_06, a development video: per-frame AP 0.846; at the track, four sustained false drone tracks (precision 0.2) &#183; ~4 fps on an RTX 5070 laptop</text>
 </svg>

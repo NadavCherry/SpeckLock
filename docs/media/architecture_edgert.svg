@@ -4,7 +4,7 @@
              markerWidth="7" markerHeight="7" orient="auto-start-reverse">
              <path d="M 0 1 L 9 5 L 0 9 z" fill="#8b949e"/></marker></defs>
 <text x="1810" y="40" text-anchor="end" font-size="19" font-weight="700" fill="#e6edf3">EDGE-RT</text>
-<text x="1810" y="60" text-anchor="end" font-size="12.5" fill="#9198a1">real-time edge profile &#183; FINAL/run_final.py --profile edge-rt</text>
+<text x="1810" y="60" text-anchor="end" font-size="12.5" fill="#9198a1">real-time edge profile &#183; final/run_final.py --profile edge-rt</text>
 <rect x="30" y="100" width="170" height="130" rx="10" fill="#161b22" stroke="#30363d" stroke-width="2"/>
 <rect x="30" y="100" width="170" height="30" rx="10" fill="#388bfd"/>
 <rect x="30" y="118" width="170" height="12" fill="#388bfd"/>
@@ -44,19 +44,19 @@
 <text x="1200.0" y="168" text-anchor="middle" font-size="14" fill="#e6edf3" opacity="0.9">reads the whole stack, full frame</text>
 <text x="1200.0" y="192" text-anchor="middle" font-size="14" fill="#e6edf3" opacity="0.9">no proposals &#183; no crops &#183; no expert</text>
 <text x="1200.0" y="216" text-anchor="middle" font-size="14" fill="#e6edf3" opacity="0.9">&#8250; drone / bird, everywhere</text>
-<text x="1200.0" y="281" text-anchor="middle" font-size="12.5" fill="#9198a1">6.7 ms/frame &#8212; the entire neural budget</text>
+<text x="1200.0" y="281" text-anchor="middle" font-size="12.5" fill="#9198a1">one network &#8212; the entire neural budget</text>
 <rect x="30" y="370" width="480" height="190" rx="10" fill="#161b22" stroke="#30363d" stroke-width="2"/>
 <rect x="30" y="370" width="480" height="30" rx="10" fill="#30363d"/>
 <rect x="30" y="388" width="480" height="12" fill="#30363d"/>
-<text x="270.0" y="390" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff" letter-spacing="0.8">MEASURED &#183; RTX 5070, 591-FRAME TEST VIDEO</text>
-<text x="58" y="436" font-size="13.5" fill="#e6edf3" opacity="0.9" font-weight="400">stabilize + warp</text>
-<text x="482" y="436" text-anchor="end" font-size="13.5" font-weight="400" fill="#e6edf3">4.3 ms</text>
-<text x="58" y="462" font-size="13.5" fill="#e6edf3" opacity="0.9" font-weight="400">nano net (TensorRT FP16)</text>
-<text x="482" y="462" text-anchor="end" font-size="13.5" font-weight="400" fill="#e6edf3">6.7 ms</text>
-<text x="58" y="488" font-size="13.5" fill="#e6edf3" opacity="0.9" font-weight="400">Kalman tracker</text>
-<text x="482" y="488" text-anchor="end" font-size="13.5" font-weight="400" fill="#e6edf3">0.1 ms</text>
+<text x="270.0" y="390" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff" letter-spacing="0.8">MEASURED &#183; RTX 4090, 10_06, 341 STEADY FRAMES</text>
+<text x="58" y="436" font-size="13.5" fill="#e6edf3" opacity="0.9" font-weight="400">per frame, median</text>
+<text x="482" y="436" text-anchor="end" font-size="13.5" font-weight="400" fill="#e6edf3">17.0 ms</text>
+<text x="58" y="462" font-size="13.5" fill="#e6edf3" opacity="0.9" font-weight="400">per frame, p95</text>
+<text x="482" y="462" text-anchor="end" font-size="13.5" font-weight="400" fill="#e6edf3">18.9 ms</text>
+<text x="58" y="488" font-size="13.5" fill="#e6edf3" opacity="0.9" font-weight="400">AP, same pass</text>
+<text x="482" y="488" text-anchor="end" font-size="13.5" font-weight="400" fill="#e6edf3">0.876</text>
 <text x="58" y="514" font-size="13.5" fill="#e6edf3" opacity="0.9" font-weight="700">end-to-end</text>
-<text x="482" y="514" text-anchor="end" font-size="13.5" font-weight="700" fill="#e6edf3">11 ms &#183; 74 fps</text>
+<text x="482" y="514" text-anchor="end" font-size="13.5" font-weight="700" fill="#e6edf3">58.9 fps</text>
 <text x="270.0" y="581" text-anchor="middle" font-size="12.5" fill="#9198a1">projected on Jetson Orin Nano: 10-15 fps @1280, 25-35 fps @640</text>
 <rect x="640" y="400" width="280" height="140" rx="10" fill="#161b22" stroke="#2ea043" stroke-width="2"/>
 <rect x="640" y="400" width="280" height="30" rx="10" fill="#2ea043"/>
@@ -96,5 +96,5 @@
 <text x="998" y="456" text-anchor="middle" font-size="12.5" fill="#9198a1">tracks</text>
 <path d="M 1300 470 L 1478 470" fill="none" stroke="#8b949e" stroke-width="2.4" marker-end="url(#ar)"/>
 <text x="1478" y="456" text-anchor="middle" font-size="12.5" fill="#9198a1">drone tracks only</text>
-<text x="920.0" y="604" text-anchor="middle" font-size="13" fill="#9198a1">unseen test video: tracked AP / F1 / R / P = 1.000, zero false alarms &#8212; at 74 fps end-to-end &#183; one network is the whole pipeline</text>
+<text x="920.0" y="604" text-anchor="middle" font-size="13" fill="#9198a1">10_06, a development video: per-frame AP 0.876 at 58.9 fps, RTX 4090, one pass &#183; no engine ships, so a fresh clone runs the .pt at 35.2 fps</text>
 </svg>
