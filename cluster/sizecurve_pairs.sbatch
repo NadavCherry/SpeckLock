@@ -3,7 +3,7 @@
 #SBATCH --time 0-02:30:00
 #SBATCH --job-name sl_scpairs
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/scpairs-%j.out
-#SBATCH --mem=880M
+#SBATCH --mem=1100M
 ### Size curves for two comparisons the shipped size-crossover table does not make.
 ### tools/size_curve.py tests its first "our" arm against the FIRST other arm only, so each
 ### comparison is its own two-arm run, into its own directory: the shipped
@@ -16,8 +16,10 @@
 ###   tyolov8  ours (temporal, 100 ep) - Temporal-YOLOv8 (70 ep, configs/experiments/prior_art.py).
 ###            Declared before any of that arm's scorecards existed.
 ###
-### 880M: cluster/sizecurve_paired.sbatch's measured suite-gate peak (743,428 kB) + ~20 %. The
-### size_curve step reads two arms here, fewer than the three it was measured with.
+### 1100M, measured: the suite gate -- this job's peak -- reached 941,944 kB (ardmav) and
+### 950,156 kB (nps) in its first two runs (jobs 21175725, 21175726), up from the 743,428 kB it
+### was first sized from, because the suite has grown. 928 MiB plus ~20 %. Those two runs asked
+### for 880M and got through the gate anyway; that is not evidence that 880M suffices.
 ### NO --gpus: this reads detection JSON that already exists and does arithmetic.
 ###
 ###     sbatch cluster/sizecurve_pairs.sbatch ardmav single
