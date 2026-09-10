@@ -15,7 +15,7 @@ Same network, hyperparameters and seed, same **1280 px**, same pipeline, same vi
 
 † Everywhere in this report, recall and precision sit at the best-F1 threshold swept on the same video -- an oracle operating point, which `dronedet/metrics.py` says in writing is not an achievable one. AP is threshold-free.
 
-‡ Counting every detection the model emits: the most it can ever find, and the precision that costs. Each labelled frame of `10_06` holds one drone, so this recall is the share of labelled frames in which the drone is found at all.
+‡ Counting every detection the model emits: the most it can ever find, and the precision that costs. Precision counts only detections in frames the ground truth scores; the detections column counts every one. Each labelled frame of `10_06` holds one drone, so this recall is the share of labelled frames in which the drone is found at all.
 
 ### 1b. Uncontrolled cross-check: versus an off-the-shelf detector
 
