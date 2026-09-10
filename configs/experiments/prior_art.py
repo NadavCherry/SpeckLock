@@ -26,7 +26,7 @@ SPECIFIED BY THE PAPER, AND REPRODUCED
     perform as well".
   * "Pretrained weights from the m variant of the YOLOv8 model": here Ultralytics' released
     yolov8m.pt, the public YOLOv8m weights (trained on COCO), with the standard 3-scale head.
-  * 70 epochs under Ultralytics' learning-rate schedule.
+  * 70 epochs.
 
 AN INTERPRETATION, NOT A SPECIFICATION
   * The learning rate. The paper uses "the default Adam optimizer" and cites Kingma and Ba, whose
@@ -43,14 +43,18 @@ NOT REPRODUCED, AND WHY
     both arms train on true extents (min_side 0).
   * Its "balanced mosaicking" -- crops of 420, 750 and 1920 px, downscaling floored at 10x10 px
     objects, a box blur before each downscale -- and its CLAHE (p = 0.1) and 10 % scale jitter.
-    Both arms use the paired arm's augmentation: photometric augmentation off, standard mosaic
-    on 640 px tiles at native resolution.
+    Both arms use the paired arm's augmentation (NO_PHOTOMETRIC_AUG): no HSV jitter; mosaic at
+    p = 0.3, switched off for the last 12 epochs; scale +/-25 %; translate 8 %; horizontal flip
+    at p = 0.5 -- on 640 px tiles at native resolution.
   * Its metric: IoU >= 0.01, with several detections inside one annotation all counted correct.
     Both arms are scored by this repository's protocol for each dataset (IoU >= 0.5 on the
     benchmarks, centre distance on the local videos).
 
 MATCHED TO THE PAIRED SPECKLOCK ARM, because the paper does not specify it
   * 640 px tiles, the same stride, splits and labels, batch 8, patience 25.
+  * The learning-rate schedule: Ultralytics' cosine schedule (cos_lr=True), which every arm in
+    this repository uses. The paper names "the automatic learning rate scheduler developed by
+    Ultralytics" without saying which; Ultralytics' own default is linear.
 
 Two of the ten NPS TEST clips run at 59.9 fps (named in the build log and in
 tools/make_summary.py). On them 15 frames is 0.25 s, as SpeckLock's 6 frames is 0.10 s: both
