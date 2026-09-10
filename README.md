@@ -214,6 +214,15 @@ Temporal against this project's own single-frame control, seed-matched, both tra
 to +0.054 AP) and none is significant even uncorrected; on NPS two rows were *worse* uncorrected
 (−0.081, −0.097) and neither survives.
 
+By target size — a comparison added after that result was known, on the size bins fixed long
+before it ([ARD-MAV](work/reports/size_curve/vs_single/ardmav_mission.md) ·
+[NPS](work/reports/size_curve/vs_single/nps_mission.md)) — the stack's lead on ARD-MAV sits where
+it was designed to help: **+0.124 AP below 8 px and +0.109 at 8–10 px, on every seed**, against
+about −0.03 above 16 px. It is not significant. Below 8 px the bootstrap interval excludes zero on
+two of three seeds but the permutation test does not agree (p = 0.063, 0.082, 0.199), and no bin
+is significant under the two-test rule even before correction. NPS has no target under 10 px, and
+there no bin differs after correction.
+
 How much each camera moves, measured the same way everywhere by
 [`tools/camera_motion.py`](tools/camera_motion.py): frame-to-frame global translation by phase
 correlation, the same motion model the stabiliser removes. It is a lower bound on camera motion —
@@ -383,7 +392,7 @@ Scorecards: [city](work/pursuit/city/METRICS.md) · [pursuit campaign](work/purs
 | | result | n | mark |
 |---|---|---|---|
 | Temporal representation, controlled | **0.159 → 0.895** AP on a near-static camera, one augmentation confound (§3) | 1 video · 337 boxes | 🟢 |
-| Temporal vs single-frame, moving camera | **no difference** on ARD-MAV and NPS, whose backgrounds move a median 11.5 px and 59.6 px per 12 frames (§6) | 2 benchmarks × 3 seeds × 2 budgets | ⚠️ |
+| Temporal vs single-frame, moving camera | **no difference** on ARD-MAV and NPS, whose backgrounds move a median 11.5 px and 59.6 px per 12 frames; below 10 px on ARD-MAV the stack leads on every seed, not significantly (§6) | 2 benchmarks × 3 seeds × 2 budgets | ⚠️ |
 | ARD-MAV, official 15-video split | **0.809** (3 seeds, 100 ep) | 15 videos · 28,160 boxes | 🟢 |
 | Versus YOLOMG, same evaluator | they lead 0.834 / 0.527, significant on no seed after Holm; we lead <10 px, **not significantly** | 2 benchmarks × 3 seeds | 🟢 |
 | Our 8 px task, fine-tuned | **0.840** vs 0.604 | 1 flight × 3 seeds | 🟢 |
