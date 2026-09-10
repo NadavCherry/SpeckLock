@@ -64,7 +64,7 @@ ARD_VAL_IDS = ["phantom06", "phantom23", "phantom45", "phantom61", "phantom79"]
 TEMPORAL_DT = 6
 
 
-def _temporal_name(base: str, temporal: bool, dt: int) -> str:
+def _temporal_name(base: str, temporal: bool, dt: int, variant: str = "") -> str:
     """Dataset directory name, carrying a non-default tap spacing in the name itself.
 
     Without this, `--dt 2` writes into `nps_yolo_temporal` -- the directory holding the
@@ -77,7 +77,18 @@ def _temporal_name(base: str, temporal: bool, dt: int) -> str:
     """
     if not temporal:
         return base
-    return base if dt == TEMPORAL_DT else f"{base}_dt{dt}"
+    name = base if dt == TEMPORAL_DT else f"{base}_dt{dt}"
+    # A different window SHAPE (centred taps) or no stabilisation is a different
+    # representation even at the same dt, and must never share a directory with the
+    # shipped one -- for the same reason a different dt must not.
+    return f"{name}_{variant}" if variant else name
+
+
+def _variant(taps: str, stab_mode: str) -> str:
+    """'' for the shipped representation (causal taps, translation stabilisation)."""
+    if taps == "causal" and stab_mode == "translation":
+        return ""
+    return f"{taps}_stab{stab_mode}"
 
 
 # ----------------------------------------------------------------------------- parsing
@@ -180,14 +191,14 @@ def _nps_video(clip_id):
 
 
 def build_nps_tiled(stride_train, stride_val, min_side, tile=640, temporal=False,
-                    dt=TEMPORAL_DT, chroma_444=False):
+                    dt=TEMPORAL_DT, chroma_444=False, taps="causal", stab_mode="translation"):
     """NPS-Drones on the Dogfight split, single-frame or temporal.
 
     Same builder for both arms, differing only in which extractor is called, so the two
     arms of the A/B cannot drift apart in tiling, stride or negatives.
     """
     name = _temporal_name("nps_yolo_temporal" if temporal else "nps_yolo_tiled",
-                          temporal, dt)
+                          temporal, dt, _variant(taps, stab_mode) if temporal else "")
     root = OUT_ROOT / name
     stats = {"train": [0, 0], "val": [0, 0]}
     extractor = extract_yolo_tiled_temporal if temporal else extract_yolo_tiled
@@ -204,7 +215,7 @@ def build_nps_tiled(stride_train, stride_val, min_side, tile=640, temporal=False
             chosen = set(pos[::stride])
             kw = dict(tile=tile)
             if temporal:
-                kw.update(dt=dt, chroma_444=chroma_444)
+                kw.update(dt=dt, chroma_444=chroma_444, taps=taps, stab_mode=stab_mode)
             ni, nb = extractor(video, boxes, chosen,
                                root / "images" / split, root / "labels" / split,
                                clip, min_side, **kw)
@@ -214,6 +225,8 @@ def build_nps_tiled(stride_train, stride_val, min_side, tile=640, temporal=False
     write_data_yaml(root, build={"task": name, "min_side": float(min_side),
                                  "tile": tile, "temporal": temporal,
                                  "dt": dt if temporal else None,
+                                 "taps": taps if temporal else None,
+                                 "stab_mode": stab_mode if temporal else None,
                                  "split": "dogfight-1-36/37-40/41-50",
                                  "annotations": "dogfight"})
     print(f"\nNPS {'TEMPORAL' if temporal else 'TILED'} ({tile}px) -> {root}")
@@ -435,10 +448,89 @@ def _stack_aligned_to_now(buf, dt: int):
     return taps
 
 
+def _stack_aligned_to(frames, ref: int):
+    """Taps ``[(gray, dx, dy), ...]``, each warped into ``frames[ref]``'s coordinates.
+
+    The general form of `_stack_aligned_to_now`, which is the case ref = the newest tap.
+    Temporal-YOLOv8's centred window carries the labels of its MIDDLE tap, so the same
+    relative-shift rule applies with the middle as reference. With the stabiliser off every
+    shift is zero and every tap is its raw frame, never resampled.
+    """
+    _, dx_ref, dy_ref = frames[ref]
+    taps = []
+    for gray, dx, dy in frames:
+        rx, ry = dx - dx_ref, dy - dy_ref
+        if rx == 0.0 and ry == 0.0:
+            taps.append(gray)
+        else:
+            m = np.float32([[1.0, 0.0, rx], [0.0, 1.0, ry]])
+            taps.append(cv2.warpAffine(gray, m, (gray.shape[1], gray.shape[0]),
+                                       flags=cv2.INTER_LINEAR,
+                                       borderMode=cv2.BORDER_CONSTANT, borderValue=0))
+    return taps
+
+
+def _centred(buf, first: int, t: int, dt: int, last: int):
+    """The stack for frame t from a buffer holding frames first..last: t-dt, t, t+dt, clamped."""
+    idx = [max(0, t - dt), t, min(last, t + dt)]
+    return np.dstack(_stack_aligned_to([buf[i - first] for i in idx], ref=1))
+
+
+def centred_stacks_from(frames, dt: int, stab_mode: str = "off", stop: int | None = None):
+    """Yield ``(t, stack)`` for every frame t, the stack being gray(t-dt), gray(t), gray(t+dt).
+
+    Temporal-YOLOv8's window (van Leeuwen et al., Sensors 2024: "around 15 frames are sampled
+    before and after the current frame"). It is NON-CAUSAL: the stack for frame t exists only
+    once frame t+dt has been read, so this runs dt frames behind its input, and at the end it
+    flushes the last dt frames with the newest tap clamped to the final frame -- the mirror of
+    the causal window clamping its oldest tap at the start. Every frame yields exactly one
+    stack, in order. With ``stop``, frames before ``stop`` are yielded, each still with its
+    real future tap.
+    """
+    from collections import deque
+
+    from dronedet.stabilize import Stabilizer
+
+    stab = Stabilizer(stab_mode)
+    buf = deque(maxlen=2 * dt + 1)
+    first = n = 0
+    for frame in frames:
+        if stop is not None and n >= stop + dt:
+            break
+        m = stab.update(frame)
+        buf.append((cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY), float(m[0, 2]), float(m[1, 2])))
+        n += 1
+        first = max(0, n - buf.maxlen)
+        t = n - 1 - dt
+        if t >= 0 and (stop is None or t < stop):
+            yield t, _centred(buf, first, t, dt, n - 1)
+    for t in range(max(0, n - dt), n):
+        if stop is None or t < stop:
+            yield t, _centred(buf, first, t, dt, n - 1)
+
+
+def centred_stacks(video_path, dt: int, stab_mode: str = "off", stop: int | None = None):
+    """`centred_stacks_from` over a video file. Shared, deliberately, by this builder and by
+    tools/infer_tiled.py, so a centred model sees at test time exactly what it trained on."""
+    cap = cv2.VideoCapture(str(video_path))
+
+    def _read():
+        while True:
+            ok, f = cap.read()
+            if not ok:
+                return
+            yield f
+
+    try:
+        yield from centred_stacks_from(_read(), dt, stab_mode, stop)
+    finally:
+        cap.release()
+
+
 def extract_yolo_tiled_temporal(video_path, boxes_by_frame, frame_ids, img_dir, lbl_dir,
                                 prefix, min_side, tile=640, jitter=0.35, neg_per_frame=1,
                                 quality=92, dt=TEMPORAL_DT, chroma_444=False,
-                                stab_mode="translation"):
+                                stab_mode="translation", taps="causal"):
     """`extract_yolo_tiled`, but each tile is a stabilised 3-moment temporal stack.
 
     This is the representation the project's own ablation measures at AP 1.000 against
@@ -473,6 +565,21 @@ def extract_yolo_tiled_temporal(video_path, boxes_by_frame, frame_ids, img_dir, 
     if not want:
         return 0, 0
     last = max(want)
+
+    if taps == "centred":
+        # Temporal-YOLOv8's window, through the generator tools/infer_tiled.py also uses.
+        n_img = n_box = 0
+        for t, stack in centred_stacks(video_path, dt, stab_mode, stop=last + 1):
+            if t in want:
+                ni, nb = _emit_tiles(stack, boxes_by_frame.get(t, []),
+                                     img_dir, lbl_dir, f"{prefix}_{t:05d}",
+                                     min_side, tile, rng, jitter, neg_per_frame,
+                                     quality, chroma_444)
+                n_img += ni
+                n_box += nb
+        return n_img, n_box
+    if taps != "causal":
+        raise ValueError(f"taps must be 'causal' or 'centred', not {taps!r}")
 
     stab = Stabilizer(stab_mode)
     # (gray, dx, dy) -- RAW grayscale plus its accumulated shift. Storing the frames
@@ -658,7 +765,8 @@ def build_ardmav_train_tiled(stride_train, stride_val, min_side, tile=640):
 
 
 def build_ardmav_temporal_tiled(stride_train, stride_val, min_side, tile=640,
-                                dt=TEMPORAL_DT, chroma_444=False):
+                                dt=TEMPORAL_DT, chroma_444=False, taps="causal",
+                                stab_mode="translation"):
     """ARD-MAV as stabilised temporal stacks, on the OFFICIAL split.
 
     The sibling of `build_ardmav_train_tiled`, differing only in the input
@@ -670,7 +778,9 @@ def build_ardmav_temporal_tiled(stride_train, stride_val, min_side, tile=640,
     on -- and the 5 val videos are a whole-video holdout, so no frame of a val sequence
     can reach train through a neighbouring tile.
     """
-    root = OUT_ROOT / _temporal_name("ardmav_yolo_temporal", True, dt)
+    root = OUT_ROOT / _temporal_name("ardmav_yolo_temporal", True, dt,
+                                     _variant(taps, stab_mode))
+    print(f"window: {taps} taps, stabiliser {stab_mode}")
     train_ids = [v for v in _ard_all() if v not in ARD_TEST_IDS and v not in ARD_VAL_IDS]
     stats = {"train": [0, 0], "val": [0, 0]}
     print(f"temporal stacks: dt={dt} (taps t-{2*dt}, t-{dt}, t), "
@@ -685,13 +795,15 @@ def build_ardmav_temporal_tiled(stride_train, stride_val, min_side, tile=640,
             ni, nb = extract_yolo_tiled_temporal(
                 ARD_ROOT / "videos" / f"{vid}.mp4", boxes, chosen,
                 root / "images" / split, root / "labels" / split,
-                vid, min_side, tile=tile, dt=dt, chroma_444=chroma_444)
+                vid, min_side, tile=tile, dt=dt, chroma_444=chroma_444,
+                taps=taps, stab_mode=stab_mode)
             stats[split][0] += ni
             stats[split][1] += nb
             print(f"  [{split}] {vid}: {ni} tiles, {nb} boxes")
     write_data_yaml(root, build={"task": "ardmav-temporal-tiled",
                                  "min_side": float(min_side), "tile": tile,
                                  "temporal": True, "dt": dt,
+                                 "taps": taps, "stab_mode": stab_mode,
                                  "chroma_444": chroma_444})
     print(f"\nARD-MAV TEMPORAL YOLO ({tile}px, dt={dt}) -> {root}")
     print(f"  train: {stats['train'][0]} tiles / {stats['train'][1]} boxes")
@@ -736,7 +848,8 @@ LOCAL_TEST_GT = LOCAL_GT["10_06"]
 
 
 def build_local_tiled(stride_train=1, stride_val=None, min_side=0.0, tile=640,
-                      temporal=False, dt=TEMPORAL_DT, direction="fwd"):
+                      temporal=False, dt=TEMPORAL_DT, direction="fwd", taps="causal",
+                      stab_mode="translation"):
     """One local video as training tiles, through the SAME extractors the benchmarks use.
 
     Deliberately not a new tiling implementation: `extract_yolo_tiled` and
@@ -750,7 +863,8 @@ def build_local_tiled(stride_train=1, stride_val=None, min_side=0.0, tile=640,
     train_vid, test_vid = LOCAL_DIRECTIONS[direction]
     suffix = "" if direction == "fwd" else "_rev"
     root = OUT_ROOT / _temporal_name(
-        f"local{suffix}_yolo_{'temporal' if temporal else 'tiled'}", temporal, dt)
+        f"local{suffix}_yolo_{'temporal' if temporal else 'tiled'}", temporal, dt,
+        _variant(taps, stab_mode) if temporal else "")
 
     boxes = parse_repo_gt(LOCAL_GT[train_vid])
     pos = sorted(f for f, b in boxes.items() if b)
@@ -769,7 +883,7 @@ def build_local_tiled(stride_train=1, stride_val=None, min_side=0.0, tile=640,
     stats = {}
     for split, frames in splits.items():
         extract = extract_yolo_tiled_temporal if temporal else extract_yolo_tiled
-        kw = {"dt": dt} if temporal else {}
+        kw = {"dt": dt, "taps": taps, "stab_mode": stab_mode} if temporal else {}
         ni, nb = extract(LOCAL_VIDEOS[train_vid], boxes, set(frames),
                          root / "images" / split, root / "labels" / split,
                          train_vid, min_side, tile=tile, **kw)
@@ -780,6 +894,8 @@ def build_local_tiled(stride_train=1, stride_val=None, min_side=0.0, tile=640,
                                          f"{'temporal' if temporal else 'tiled'}",
                                  "min_side": float(min_side), "tile": tile,
                                  "temporal": temporal, "dt": dt if temporal else None,
+                                 "taps": taps if temporal else None,
+                                 "stab_mode": stab_mode if temporal else None,
                                  "direction": direction,
                                  "train_video": train_vid, "test_video": test_vid,
                                  "split": f"time-ordered 85/15 within {train_vid}",
@@ -1098,6 +1214,13 @@ if __name__ == "__main__":
                          "the chroma planes carry the inter-frame difference, which "
                          "4:2:0 stores at half resolution; off by default so the "
                          "shipped representation is reproduced exactly")
+    ap.add_argument("--taps", choices=["causal", "centred"], default="causal",
+                    help="causal: t-2*dt, t-dt, t (the shipped SpeckLock window). centred: "
+                         "t-dt, t, t+dt -- Temporal-YOLOv8's window, which reads dt frames of "
+                         "the future")
+    ap.add_argument("--stab", choices=["translation", "off"], default="translation",
+                    help="camera-motion compensation before stacking; 'off' reproduces "
+                         "Temporal-YOLOv8, which has none")
     a = ap.parse_args()
     if a.task in ("ardmav-train", "all"):
         build_ardmav_train(a.stride_train, a.stride_val, a.min_side)
@@ -1108,12 +1231,14 @@ if __name__ == "__main__":
                         temporal=False)
     if a.task == "nps-temporal-tiled":
         build_nps_tiled(a.stride_train, a.stride_val, a.min_side, tile=a.tile,
-                        temporal=True, dt=a.dt, chroma_444=a.chroma_444)
+                        temporal=True, dt=a.dt, chroma_444=a.chroma_444,
+                        taps=a.taps, stab_mode=a.stab)
     if a.task == "nps-gt-dogfight":
         build_nps_test_gt_dogfight()
     if a.task == "ardmav-temporal-tiled":
         build_ardmav_temporal_tiled(a.stride_train, a.stride_val, a.min_side,
-                                    tile=a.tile, dt=a.dt, chroma_444=a.chroma_444)
+                                    tile=a.tile, dt=a.dt, chroma_444=a.chroma_444,
+                                    taps=a.taps, stab_mode=a.stab)
     if a.task == "combined-tiled":
         build_combined_tiled(a.stride_train, a.stride_val, a.min_side, tile=a.tile)
     if a.task == "combined-gt":
@@ -1126,7 +1251,7 @@ if __name__ == "__main__":
                           direction="rev" if "rev" in a.task else "fwd")
     if a.task in ("local-temporal", "local-rev-temporal"):
         build_local_tiled(a.stride_train, a.stride_val, a.min_side, tile=a.tile,
-                          temporal=True, dt=a.dt,
+                          temporal=True, dt=a.dt, taps=a.taps, stab_mode=a.stab,
                           direction="rev" if "rev" in a.task else "fwd")
     if a.task in ("local-gt", "local-rev-gt"):
         build_local_test_gt(direction="rev" if "rev" in a.task else "fwd")

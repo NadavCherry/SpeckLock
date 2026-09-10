@@ -101,7 +101,8 @@ def merge_by_centre(dets: list[Detection], dist: float = 6.0) -> list[Detection]
     return out
 
 
-def frame_source(video: Path, mode: str, dt: int):
+def frame_source(video: Path, mode: str, dt: int, taps: str = "causal",
+                 stab_mode: str = "translation"):
     """Yield (index, HxWx3 uint8) in the representation the model was trained on."""
     if mode == "rgb":
         cap = cv2.VideoCapture(str(video))
@@ -125,8 +126,14 @@ def frame_source(video: Path, mode: str, dt: int):
     sys.modules[spec.name] = mde
     spec.loader.exec_module(mde)
 
+    if taps == "centred":
+        # Temporal-YOLOv8's window, from the builder's own generator: it runs dt frames behind
+        # the video and flushes the tail, so every frame still gets exactly one stack.
+        yield from mde.centred_stacks(video, dt, stab_mode)
+        return
+
     from dronedet.stabilize import Stabilizer
-    stab = Stabilizer("translation")
+    stab = Stabilizer(stab_mode)
     buf: deque = deque(maxlen=2 * dt + 1)
     cap = cv2.VideoCapture(str(video))
     idx = 0
@@ -149,10 +156,13 @@ def frame_source(video: Path, mode: str, dt: int):
 def run_video(model, video: Path, mode: str, args) -> DetectionSet:
     ds = DetectionSet(video=video.name, method=f"tiled-{mode}",
                       meta={"mode": mode, "tile": args.tile, "overlap": args.overlap,
-                            "conf": args.conf, "dt": args.dt, "weights": args.weights})
+                            "conf": args.conf, "dt": args.dt, "weights": args.weights,
+                            "taps": getattr(args, "taps", "causal"),
+                            "stab": getattr(args, "stab", "translation")})
     origins = None
     dx = dy = 0.0          # both modes now yield original-frame coordinates
-    for idx, img in frame_source(video, mode, args.dt):
+    for idx, img in frame_source(video, mode, args.dt, getattr(args, "taps", "causal"),
+                                 getattr(args, "stab", "translation")):
         if args.stop and idx >= args.stop:
             break
         h, w = img.shape[:2]
@@ -231,6 +241,10 @@ def main(argv: list[str] | None = None) -> int:
                          "number is FP32")
     ap.add_argument("--device", default="0")
     ap.add_argument("--dt", type=int, default=TEMPORAL_DT)
+    ap.add_argument("--taps", choices=["causal", "centred"], default="causal",
+                    help="must match the build the weights were trained on")
+    ap.add_argument("--stab", choices=["translation", "off"], default="translation",
+                    help="must match the build the weights were trained on")
     ap.add_argument("--stop", type=int, default=0, help="first N frames only (smoke test)")
     ap.add_argument("--limit", type=int, default=0, help="first N videos only")
     a = ap.parse_args(argv)

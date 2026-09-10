@@ -145,6 +145,7 @@ class ExperimentConfig:
     workers: int = 4
     cos_lr: bool = True
     lr0: float | None = None                   # None keeps ultralytics' own default
+    optimizer: str | None = None               # None keeps ultralytics' own ('auto')
     freeze: int | None = None
     deterministic: bool = True
 

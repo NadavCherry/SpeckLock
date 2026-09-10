@@ -134,11 +134,14 @@ def target_sizes(gt_path: Path) -> list[float]:
 
 
 def resolve_items(a) -> list[tuple[Path, Path]]:
+    from tools.video_paths import resolve_video
+
     items = [(Path(v), Path(g)) for v, g in a.pair]
     if a.gt_dir:
         for g in sorted(a.gt_dir.glob("*.json")):
-            v = next((a.video_root / (g.stem + e) for e in VIDEO_EXTS
-                      if (a.video_root / (g.stem + e)).is_file()), None)
+            # The evaluator's own resolver. NPS ground truth is named Clip_041 while its video
+            # is Clip_41.mov, and matching the names literally found none of the ten test clips.
+            v = resolve_video(a.video_root, g.stem)
             if v is None:
                 # Never skip silently: a dataset measured on the videos that happened to be
                 # present is a different dataset from the one the claim is about.

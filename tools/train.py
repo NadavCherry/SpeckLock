@@ -552,6 +552,8 @@ def ultralytics_kwargs(cfg: ExperimentConfig, seed: int, run_dir: Path,
     }
     if cfg.lr0 is not None:
         kw["lr0"] = cfg.lr0
+    if cfg.optimizer is not None:
+        kw["optimizer"] = cfg.optimizer
     if cfg.freeze is not None:
         kw["freeze"] = cfg.freeze
     if device:
