@@ -141,14 +141,14 @@ def main() -> int:
           ["YOLOv8 with a P2 head", "NWD loss for tiny boxes", "labels inflated to 24 px"])
     panel(F, 1334, cy, 296, CH, "STAGE 3", EDGE, "track, then decide",
           ["Kalman tracker feeding a", "track-level classifier", "announced at the 8th hit"])
-    panel(F, 1678, cy, 318, CH, "RESULT", BLUE, "AP / F1 = 1.000",
-          [("on the unseen test video", 600, TXT), "zero false positives",
-           "4 fps desktop &#183; 74 fps edge"])
+    panel(F, 1678, cy, 318, CH, "RESULT", BLUE, "AP 0.876 at 58.9 fps",
+          [("EDGE-RT on 10_06, RTX 4090", 600, TXT), "10_06 is a development video",
+           "accuracy and speed in one pass"])
     flow(F, boxes, cy + 81)
 
     text(F, W / 2, LY + LH - 22,
-         "Same network, same recipe: single-frame input scores mAP50 0.06 and the "
-         "temporal stack scores 0.83. The representation is the breakthrough, not the network.",
+         "Same network and settings, on 10_06: single-frame input scores AP 0.159 and the "
+         "temporal stack 0.895 &#8212; though only the temporal arm trains on pasted instances.",
          size=14, fill=SUB)
 
     # tie the two halves together
@@ -251,10 +251,10 @@ def main() -> int:
     footnote(F, 1056, cy + CH + 22, 320, "sensor latency is declared, not inherited")
 
     panel(F, 1416, cy, 580, CH, "RESULT &#183; CITY DEFENCE", BLUE,
-          "24 / 24 intercepted &#183; 0 buildings hit",
-          [("mean true closest approach 0.080 m &#8212; a sixth of the airframe", 600, TXT),
-           "median 4.29 s to spare before the strike would have landed",
-           "24 arrival bearings, one every 15&#176; of the compass"])
+          "24 / 24 with a perfect sensor &#183; 0 / 3 real",
+          [("detector &#8220;oracle&#8221;: the simulator's own box, zero latency", 600, TXT),
+           "it measures the guidance law, not the seeker",
+           "on the seeker's own detections: 0 / 3, all struck"])
     flow(F, [(44, 466), (550, 466), (1056, 320), (1416, 580)], cy + 79)
 
     # =======================================================================
@@ -267,7 +267,7 @@ def main() -> int:
     panel(F, 44, cy, 620, 122, "DETECTION &#183; REAL VIDEO", GREEN,
           "centre distance, &#964; = 12 px",
           ["IoU is meaningless on a 6 px box &#8212; a pixel of shift swings it wildly",
-           "scored on a video never trained on and never used to pick a model"],
+           "10_06 is a development video; ARD-MAV / NPS use their own IoU 0.5"],
           title_dy=52, lines_dy=76, lh=19)
     panel(F, 700, cy, 620, 122, "INTERCEPTION &#183; ISAAC SIM", AMBER,
           "true closest approach &lt; 1.0 m",
@@ -276,7 +276,7 @@ def main() -> int:
           title_dy=52, lines_dy=76, lh=19)
     panel(F, 1356, cy, 640, 122, "THE HARNESSES", EDGE, "two loops and a test suite",
           ["Isaac Sim at 20 Hz, and an arithmetic sandbox: 120 scenarios in 1.2 s",
-           "540 unit tests over geometry, guidance, dynamics and the ring, in 22 s"],
+           "a unit-test suite over geometry, guidance, dynamics, the ring and scoring"],
           title_dy=52, lines_dy=76, lh=19)
 
     text(F, W / 2, H - 16,

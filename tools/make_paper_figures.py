@@ -155,7 +155,8 @@ def fig1(results: Path, out: Path, datasets: list[str], bins: str = "mission") -
              color=INK, fontsize=13)
     fig.text(0.5, 1.012,
              "shaded band = each arm's own 95 % CI over sequences, NOT a significance "
-             "test. Red bracket = the paired test separated that bin",
+             "test. Red bracket = the Holm-corrected paired test separated that bin on "
+             "every seed",
              ha="center", color=SUB, fontsize=8)
     fig.text(0.5, 0.975, "hollow marker = fewer GT instances than the power floor; "
              "treat as noise", ha="center", color=SUB, fontsize=7)

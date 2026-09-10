@@ -56,6 +56,7 @@ sys.path.insert(0, str(REPO))
 
 from benchmarks.fast_bootstrap import (paired_bootstrap_pooled_ap,  # noqa: E402
                                        paired_permutation_pooled_ap)
+from dronedet.stats import apply_holm  # noqa: E402
 from dronedet import metrics as M  # noqa: E402
 from dronedet.console import use_utf8_stdio  # noqa: E402
 from dronedet.detections import DetectionSet  # noqa: E402
@@ -204,6 +205,33 @@ def pooled_bins(per_seq, seqs, bins) -> dict[str, tuple[float, int]]:
         tp = np.concatenate([per_seq[s]["tp"][bname] for s in seqs])
         out[bname] = (_ap(tp, fp, n), n)
     return out
+
+
+def holm_paired_table(paired_out: list[dict]) -> tuple[list[str], dict[str, list[bool]]]:
+    """Holm-correct one dataset's paired table, and render its rows.
+
+    The family is the whole table (docs/research/INFRA.md section 6.1), so every row must
+    exist before any verdict is printed. Uncorrected, the ARD-MAV table marked seven rows
+    significant; two of those marks do not survive, one of them a seed of a bin the README
+    called significant "on all three seeds". Returns the markdown rows followed by a line
+    naming every mark the correction removed, and per bin whether ours won on each seed.
+    """
+    apply_holm(paired_out)
+    lines: list[str] = []
+    won: dict[str, list[bool]] = {}
+    for p in paired_out:
+        won.setdefault(p["bin"], []).append(p["significant"] and p["d_ap"] > 0)
+        lines.append(f"| {p['bin']} | {p['seed']} | {p['d_ap']:+.3f} | "
+                     f"[{p['lo']:+.3f}, {p['hi']:+.3f}] | {p['p_perm']:.4f} | "
+                     f"{p['p_perm_holm']:.4f} | "
+                     f"{'**significant**' if p['significant'] else 'no difference'} |")
+    lines.append("")
+    gone = [f"{p['bin']} seed {p['seed']}" for p in paired_out
+            if p["significant_raw"] and not p["significant"]]
+    head = f"Holm over the {len(paired_out)} rows of this table"
+    lines += [f"{head} removed the mark from: {', '.join(gone)}." if gone
+              else f"{head} changed no verdict.", ""]
+    return lines, won
 
 
 def main() -> int:
@@ -384,11 +412,11 @@ def main() -> int:
         if common and len(common) >= 2 and runs_a and runs_b:
             L += ["## Is the difference real? Paired, seed-matched, over sequences", "",
                   f"Paired bootstrap **and** permutation over the {len(common)} shared "
-                  "sequences; a bin is called significant only when both agree, matching "
-                  "`tools/make_summary.py`. Seeds are matched pairwise.", "",
-                  "| bin | seed | d AP | 95% CI | p perm | verdict |",
-                  "|---|---|---|---|---|---|"]
-            sig_summary: dict[str, list[bool]] = {}
+                  "sequences; a bin is called significant only when both agree after a Holm "
+                  "correction across this table, matching `tools/make_summary.py`. Seeds are "
+                  "matched pairwise.", "",
+                  "| bin | seed | d AP | 95% CI | p perm | p perm, Holm | verdict |",
+                  "|---|---|---|---|---|---|---|"]
             for bname, _, _ in bins:
                 if bname not in results[ours]["bins"]:
                     continue
@@ -397,18 +425,14 @@ def main() -> int:
                                         a.resamples, seed=s)
                     if not r:
                         continue
-                    sig_summary.setdefault(bname, []).append(
-                        bool(r["significant"]) and r["observed"] > 0)
                     paired_out.append({"bin": bname, "seed": s,
                                        "d_ap": r["observed"], "lo": r["lo"],
                                        "hi": r["hi"], "p_perm": r["p_perm"],
                                        "significant": bool(r["significant"]),
                                        "favours": (ours if r["observed"] > 0
                                                    else other)})
-                    L.append(f"| {bname} | {s} | {r['observed']:+.3f} | "
-                             f"[{r['lo']:+.3f}, {r['hi']:+.3f}] | {r['p_perm']:.4f} | "
-                             f"{'**significant**' if r['significant'] else 'no difference'} |")
-            L.append("")
+            rows_md, sig_summary = holm_paired_table(paired_out)
+            L += rows_md
             won = [b for b, v in sig_summary.items() if v and all(v)]
             if won:
                 L += [f"**{ours} wins significantly on every seed in: "

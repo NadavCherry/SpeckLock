@@ -80,6 +80,39 @@ def holm(pairs: Sequence[tuple[str, float]]) -> list[tuple[str, float, float]]:
     return out
 
 
+def holm_adjust(pvals: Sequence[float]) -> list[float]:
+    """Holm-adjusted p-values, returned in the order given.
+
+    `holm` returns rows sorted by raw p, which is what a report of the correction wants.
+    A results table has its own row order and needs the adjusted values back in place.
+    """
+    back = [1.0] * len(pvals)
+    for name, _raw, adj in holm([(str(i), float(p)) for i, p in enumerate(pvals)]):
+        back[int(name)] = adj
+    return back
+
+
+def apply_holm(rows: list[dict], *, p_key: str = "p_perm", alpha: float = 0.05) -> list[dict]:
+    """Re-verdict one table of paired tests under Holm, in place; returns ``rows``.
+
+    The rule is docs/research/INFRA.md section 6.1: the family is the whole table, and a
+    difference is called only when the CI excludes zero AND the Holm-adjusted p < alpha.
+    Each row needs ``lo``, ``hi`` and ``p_key``. The uncorrected verdict is kept as
+    ``significant_raw`` so a report can name the verdicts the correction removed instead
+    of changing them silently.
+
+    The rule was written down for months while no table in the repository applied it.
+    Applying it removed all three "worse" verdicts in SUMMARY.md and one seed of a
+    size-curve bin the README called significant "on all three seeds".
+    """
+    for r, adj in zip(rows, holm_adjust([r[p_key] for r in rows])):
+        excludes_zero = r["lo"] > 0 or r["hi"] < 0
+        r["significant_raw"] = bool(excludes_zero and r[p_key] < alpha)
+        r[f"{p_key}_holm"] = adj
+        r["significant"] = bool(excludes_zero and adj < alpha)
+    return rows
+
+
 def _binom_sf(k: int, n: int, p: float = 0.5) -> float:
     """P(X >= k) for X ~ Binomial(n, p), exact."""
     return sum(math.comb(n, i) * p ** i * (1 - p) ** (n - i) for i in range(k, n + 1))

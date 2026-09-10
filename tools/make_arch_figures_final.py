@@ -80,11 +80,25 @@ class Fig:
     def write(self, stem):
         out = "\n".join(self.svg) + "\n</svg>"
         Path("docs/media").mkdir(parents=True, exist_ok=True)
-        Path(f"docs/media/{stem}.svg").write_text(out, encoding="utf-8")
-        import cairosvg
-
-        cairosvg.svg2png(bytestring=out.encode(), write_to=f"docs/media/{stem}.png",
-                         output_width=self.w)
+        svg = Path(f"docs/media/{stem}.svg")
+        svg.write_text(out, encoding="utf-8")
+        png = Path(f"docs/media/{stem}.png")
+        try:
+            import cairosvg
+        except ImportError:
+            # The cluster env has no cairosvg; rsvg-convert renders the same file. Neither
+            # present is a hard stop, NOT a skipped PNG: social_card.png sat beside
+            # corrected text for weeks still carrying a retracted claim, because nothing
+            # forced the picture to be regenerated along with the words.
+            import shutil
+            import subprocess
+            exe = shutil.which("rsvg-convert")
+            if exe is None:
+                raise SystemExit(f"cannot render {png}: install cairosvg or rsvg-convert. "
+                                 f"Refusing to leave a stale PNG beside a new {svg.name}.")
+            subprocess.run([exe, "-w", str(self.w), "-o", str(png), str(svg)], check=True)
+        else:
+            cairosvg.svg2png(bytestring=out.encode(), write_to=str(png), output_width=self.w)
         print(f"written docs/media/{stem}.svg/.png")
 
 
@@ -202,8 +216,11 @@ def make_pcmax():
     F.arrow([(1130, BOT + 75), (1198, BOT + 75)], "tracks", loff=(0, -14))
     F.arrow([(1500, BOT + 75), (1538, BOT + 75)])
 
-    F.footer("unseen test video: tracked AP / F1 / R / P = 1.000, zero false alarms &#183; "
-             "~4 fps on an RTX 5070 laptop &#8212; the accuracy-first profile")
+    # Was "unseen test video: tracked AP/F1/R/P = 1.000, zero false alarms". 10_06 is a
+    # development video, and work/reports/tracks/pcmax_1006.json records four sustained
+    # false drone tracks on it (track precision 0.2).
+    F.footer("10_06, a development video: per-frame AP 0.846; at the track, four sustained "
+             "false drone tracks (precision 0.2) &#183; ~4 fps on an RTX 5070 laptop")
     F.write("architecture_pcmax")
 
 
@@ -255,16 +272,20 @@ def make_edgert():
         F.svg.append(f'<text x="{nx+nw/2}" y="{ny+98+i*24}" text-anchor="middle" '
                      f'font-size="14" fill="{TXT}" opacity="0.9">{ln}</text>')
     F.svg.append(f'<text x="{nx+nw/2}" y="{ny+nh+21}" text-anchor="middle" font-size="12.5" '
-                 f'fill="{SUB}">6.7 ms/frame &#8212; the entire neural budget</text>')
+                 f'fill="{SUB}">one network &#8212; the entire neural budget</text>')
 
     # ---- lane 2: measured budget | tracker -> classifier -> output ----------
     bx, by, bw, bh = 30, BOT - 30, 480, 190
     F.svg.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="{bh}" rx="10" '
                  f'fill="{CARD}" stroke="{EDGE}" stroke-width="2"/>')
-    F.header(bx, by, bw, "MEASURED &#183; RTX 5070, 591-FRAME TEST VIDEO", EDGE)
-    rows = [("stabilize + warp", "4.3 ms"), ("nano net (TensorRT FP16)", "6.7 ms"),
-            ("Kalman tracker", "0.1 ms"),
-            ("end-to-end", "11 ms &#183; 74 fps")]
+    # Re-measured on an RTX 4090 in one pass with the accuracy (work/reports/edge/
+    # edge_bench.json, engine @1280). The band used to read "RTX 5070 ... 11 ms, 74 fps",
+    # which was never reproduced. Only steady-state figures go here: that JSON's stage_ms
+    # are all-frame means that include a 4.6 s first frame, and would mislead.
+    F.header(bx, by, bw, "MEASURED &#183; RTX 4090, 10_06, 341 STEADY FRAMES", EDGE)
+    rows = [("per frame, median", "17.0 ms"), ("per frame, p95", "18.9 ms"),
+            ("AP, same pass", "0.876"),
+            ("end-to-end", "58.9 fps")]
     for i, (k, v) in enumerate(rows):
         yy = by + 66 + i * 26
         w8 = "700" if i == len(rows) - 1 else "400"
@@ -306,8 +327,8 @@ def make_edgert():
     F.arrow([(920, BOT + 70), (998, BOT + 70)], "tracks", loff=(0, -14))
     F.arrow([(1300, BOT + 70), (1478, BOT + 70)], "drone tracks only", loff=(0, -14))
 
-    F.footer("unseen test video: tracked AP / F1 / R / P = 1.000, zero false alarms &#8212; "
-             "at 74 fps end-to-end &#183; one network is the whole pipeline")
+    F.footer("10_06, a development video: per-frame AP 0.876 at 58.9 fps, RTX 4090, one "
+             "pass &#183; no engine ships, so a fresh clone runs the .pt at 35.2 fps")
     F.write("architecture_edgert")
 
 

@@ -17,6 +17,7 @@ looks for and the last thing a headline number usually says.
 
 from __future__ import annotations
 
+import html
 import sys
 from pathlib import Path
 
@@ -27,11 +28,15 @@ from make_arch_figures_final import BLUE, CARD, EDGE, GREEN, SUB, TXT, Fig  # no
 AMBER = "#d29922"
 W, H = 1280, 640
 
+# Every number here is a row of README section 12, with the provenance colour it carries
+# there. This card used to lead with "1.000 ... unseen real video" and "24 / 24" -- both
+# retracted by the README, and both still rendered here as the og:image a shared link
+# shows, because the text was corrected and the picture was never regenerated.
 STATS = [
-    ("1.000", "AP / F1, detection", "unseen real video", GREEN),
-    ("0.83", "mAP50, temporal stack", "0.06 from a single frame", GREEN),
-    ("24 / 24", "intruders intercepted", "0 buildings hit", AMBER),
-    ("0.080 m", "mean closest approach", "airframe span is 0.47 m", AMBER),
+    ("0.159 &#8594; 0.895", "AP: 1 frame vs 3 moments", "one real video &#183; same network", GREEN),
+    ("0.809", "AP, ARD-MAV", "official test split &#183; 3 seeds", GREEN),
+    ("54 / 62", "closed-loop intercepts", "sim &#183; seeker's own detections", AMBER),
+    ("58.9 fps", "1280 px, TensorRT FP16", "RTX 4090 &#183; AP in the same pass", GREEN),
 ]
 
 
@@ -54,7 +59,8 @@ def main() -> int:
         F.svg.append(f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="14" '
                      f'fill="{CARD}" stroke="{EDGE}" stroke-width="2"/>')
         F.svg.append(f'<rect x="{x}" y="{y}" width="{cw}" height="5" rx="2.5" fill="{col}"/>')
-        F.svg.append(f'<text x="{x + cw / 2}" y="{y + 76}" text-anchor="middle" font-size="42" '
+        vs = 42 if len(html.unescape(v)) <= 8 else 32  # "0.159 -> 0.895" overruns a card at 42
+        F.svg.append(f'<text x="{x + cw / 2}" y="{y + 76}" text-anchor="middle" font-size="{vs}" '
                      f'font-weight="700" fill="{TXT}">{v}</text>')
         F.svg.append(f'<text x="{x + cw / 2}" y="{y + 112}" text-anchor="middle" font-size="17" '
                      f'font-weight="600" fill="{TXT}" opacity="0.9">{k}</text>')

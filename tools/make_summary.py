@@ -34,6 +34,7 @@ sys.path.insert(0, str(REPO))
 
 from benchmarks.fast_bootstrap import (paired_bootstrap_pooled_ap,  # noqa: E402
                                        paired_permutation_pooled_ap)
+from dronedet.stats import apply_holm  # noqa: E402
 from benchmarks.catalog import ARD_CONDITIONS  # noqa: E402
 from benchmarks.scorecard import pooled_ap  # noqa: E402
 from dronedet.console import use_utf8_stdio  # noqa: E402
@@ -113,6 +114,39 @@ def paired(a_seqs, b_seqs, n_resamples: int, seed: int = 0):
     return r
 
 
+def verdict_of(r) -> str:
+    """The printed verdict for one row, from its (Holm-corrected) ``significant``."""
+    if not r["significant"]:
+        return "no difference"
+    return "**better**" if r["observed"] > 0 else "**worse**"
+
+
+def holm_table(table) -> list[str]:
+    """One paired-test table, re-verdicted under Holm across the whole table.
+
+    ``table`` is ``[(cells, name, r), ...]``: the leading markdown cells, a readable name
+    for the note under the table, and the result of `paired`. The family is the table --
+    docs/research/INFRA.md section 6.1 required that for months before any tool applied
+    it, and until it was applied this file printed three NPS "worse" verdicts that do not
+    survive it. The uncorrected p keeps its own column and every verdict the correction
+    removes is named, so the change is visible rather than silent.
+    """
+    apply_holm([r for _, _, r in table])
+    out, changed = [], []
+    for cells, name, r in table:
+        out.append(f"| {cells} | {r['observed']:+.3f} | [{r['lo']:+.3f}, {r['hi']:+.3f}] | "
+                   f"{r['p']:.4f} | {r['p_perm']:.4f} | {r['p_perm_holm']:.4f} | "
+                   f"{verdict_of(r)} |")
+        if r["significant_raw"] and not r["significant"]:
+            changed.append(f"{name} (uncorrected: {'better' if r['observed'] > 0 else 'worse'})")
+    out.append("")
+    if table:
+        head = f"Holm over the {len(table)} rows of this table"
+        out += [f"{head} removed {len(changed)} verdict(s): {'; '.join(changed)}." if changed
+                else f"{head} changed no verdict.", ""]
+    return out
+
+
 def fmt_seeds(vals):
     if not vals:
         return "--"
@@ -173,6 +207,12 @@ def main() -> int:
          f"`{a.scorecards}`. Point estimates are deterministic; the CIs and p-values are "
          f"Monte-Carlo, so reproducing them bit-for-bit needs that same resample count -- "
          f"which is why it is recorded here rather than left to the argparse default.",
+         "",
+         "Verdicts are **Holm-corrected across each table** -- the family is the whole "
+         "table (docs/research/INFRA.md section 6.1). A difference is called only when the "
+         "95% CI excludes zero and the Holm-adjusted permutation p is below 0.05; the "
+         "uncorrected p is printed beside it, and any verdict the correction removes is "
+         "named under its table.",
          ""]
 
     for ds in sorted(by_ds):
@@ -181,7 +221,7 @@ def main() -> int:
         L += [f"## {ds}", "",
               f"Protocol `{sample['protocol']}`, split `{sample['split']}`. Seed-matched "
               f"paired bootstrap **and** permutation over sequences; significant only when "
-              f"both agree.", "",
+              f"both agree, after a Holm correction across the table.", "",
               "| arm | budget | AP mean (per seed) |", "|---|---|---|"]
 
         for arm, budget, label in ROWS:
@@ -193,23 +233,19 @@ def main() -> int:
         L.append("")
 
         L += ["### Paired tests, seed-matched", "",
-              "| comparison | seed | d AP | 95% CI | p boot | p perm | verdict |",
-              "|---|---|---|---|---|---|---|"]
+              "| comparison | seed | d AP | 95% CI | p boot | p perm | p perm, Holm | verdict |",
+              "|---|---|---|---|---|---|---|---|"]
         seeds = sorted({s for (_a, _b, s) in rows})
+        table = []
         for a_arm, a_bud, b_arm, b_bud, title in TESTS:
             for seed in seeds:
                 ka, kb = (a_arm, a_bud, seed), (b_arm, b_bud, seed)
                 if ka not in rows or kb not in rows:
                     continue
                 r = paired(rows[ka]["seqs"], rows[kb]["seqs"], a.n_resamples, seed)
-                if r is None:
-                    continue
-                verdict = ("**better**" if r["observed"] > 0 else "**worse**") \
-                    if r["significant"] else "no difference"
-                L.append(f"| {title} | {seed} | {r['observed']:+.3f} | "
-                         f"[{r['lo']:+.3f}, {r['hi']:+.3f}] | {r['p']:.4f} | "
-                         f"{r['p_perm']:.4f} | {verdict} |")
-        L.append("")
+                if r is not None:
+                    table.append((f"{title} | {seed}", f"{title}, seed {seed}", r))
+        L += holm_table(table)
 
 
         # --- ARD-MAV only: GLAD's own condition grouping. The overall AP hides the
@@ -245,8 +281,9 @@ def main() -> int:
                   "> Five sequences admit only 2^5 = 32 sign patterns, so the permutation "
                   "p cannot go below 1/33 = 0.0303 however large the effect. Printed so "
                   "the floor is not mistaken for strength of evidence.", "",
-                  "| seed | d AP | 95% CI | p boot | p perm | verdict |",
-                  "|---|---|---|---|---|---|"]
+                  "| seed | d AP | 95% CI | p boot | p perm | p perm, Holm | verdict |",
+                  "|---|---|---|---|---|---|---|"]
+            small = []
             for seed in sorted({s for (_a, _b, s) in rows}):
                 ka, kb = ("temporal", "e100", seed), ("yolomg", "e30", seed)
                 if ka not in rows or kb not in rows:
@@ -258,13 +295,9 @@ def main() -> int:
                              if ARD_CONDITIONS.get(q.sequence, ()) == ("small",)],
                             key=lambda q: q.sequence)
                 r = paired(sa, sb, a.n_resamples, seed)
-                if r is None:
-                    continue
-                verdict = ("**better**" if r["observed"] > 0 else "**worse**")                     if r["significant"] else "no difference"
-                L.append(f"| {seed} | {r['observed']:+.3f} | "
-                         f"[{r['lo']:+.3f}, {r['hi']:+.3f}] | {r['p']:.4f} | "
-                         f"{r['p_perm']:.4f} | {verdict} |")
-            L.append("")
+                if r is not None:
+                    small.append((f"{seed}", f"seed {seed}", r))
+            L += holm_table(small)
 
     local = sorted(a.reports.glob("local*_seed*.md")) if a.reports.exists() else []
     if local:
