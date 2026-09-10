@@ -22,7 +22,7 @@ from .birds import BIRDS_2CLASS
 from .local_video import (SINGLEFRAME_LOCAL_AB, SINGLEFRAME_LOCAL_REV,
                           TEMPORAL_LOCAL_AB, TEMPORAL_LOCAL_REV)
 from .nps import SINGLEFRAME_NPS, TEMPORAL_NPS
-from .prior_art import TYOLOV8_ARDMAV, TYOLOV8_NPS
+from .prior_art import TYOLOV8_ARDMAV, TYOLOV8_LOCAL_AB, TYOLOV8_NPS
 from .temporal import TEMPORAL_ABLATION_SINGLE, TEMPORAL_ABLATION_STACK
 
 EXPERIMENTS: dict[str, ExperimentConfig] = {c.name: c for c in (
@@ -44,6 +44,7 @@ EXPERIMENTS: dict[str, ExperimentConfig] = {c.name: c for c in (
     TEMPORAL_LOCAL_REV,
     TYOLOV8_ARDMAV,
     TYOLOV8_NPS,
+    TYOLOV8_LOCAL_AB,
 )}
 
 #: Named sets that must be run together, and the reason they must.

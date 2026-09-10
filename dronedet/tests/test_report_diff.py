@@ -54,3 +54,46 @@ def test_a_dropped_column_fails():
 def test_a_dropped_row_fails():
     new = OLD.replace("| temporal | **0.895** | 0.840 |\n", "")
     assert any("2 rows -> 1" in p for p in compare(OLD, new))
+
+
+# The contract always said rows could be ADDED; the implementation compared by position, so a
+# fourth arm in a local report or a new prior-art table in SUMMARY.md failed a correct report.
+
+TWO = OLD + """
+| comparison | seed | d AP |
+|---|---|---|
+| ours - them | 0 | +0.010 |
+| ours - them | 1 | +0.020 |
+"""
+
+
+def test_an_added_row_passes_wherever_it_is_inserted():
+    row = "| prior art | **0.700** | 0.600 |\n"
+    appended = OLD.replace("| temporal | **0.895** | 0.840 |\n",
+                           "| temporal | **0.895** | 0.840 |\n" + row)
+    inserted = OLD.replace("| temporal |", row + "| temporal |")
+    assert compare(OLD, appended) == []
+    assert compare(OLD, inserted) == []
+
+
+def test_an_inserted_table_does_not_misalign_the_tables_after_it():
+    extra = "| comparison | seed | d AP |\n|---|---|---|\n| ours - prior art | 0 | +0.300 |\n\n"
+    new = TWO.replace("More prose.\n", "More prose.\n\n" + extra)
+    assert compare(TWO, new) == []
+    moved = new.replace("| ours - them | 1 | +0.020 |", "| ours - them | 1 | +0.021 |")
+    problems = compare(TWO, moved)
+    assert len(problems) == 1
+    assert "ours - them" in problems[0] and "'d AP'" in problems[0]
+
+
+def test_repeated_first_cells_are_matched_by_occurrence():
+    new = TWO.replace("| ours - them | 1 | +0.020 |",
+                      "| ours - them | 1 | +0.020 |\n| ours - them | 2 | +0.030 |")
+    assert compare(TWO, new) == []
+    swapped = TWO.replace("| 0 | +0.010 |", "| 0 | +0.020 |")
+    assert len(compare(TWO, swapped)) == 1
+
+
+def test_a_dropped_table_fails():
+    new = TWO.split("| comparison |")[0]
+    assert any("('comparison | seed | d AP') is gone" in p for p in compare(TWO, new))

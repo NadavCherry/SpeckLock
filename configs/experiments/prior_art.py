@@ -96,3 +96,24 @@ TYOLOV8_NPS = ExperimentConfig(
           "temporal_nps at 100 epochs on the video-disjoint NPS test clips.",
     **_TYOLOV8,
 )
+
+
+# ------------------------------------------------------------ the project's own 8 px task
+#: Temporal-YOLOv8 on 07_05 -> 10_06, the task on which every other arm is also fine-tuned
+#: (cluster/local_finetune.sbatch): initialised from ITS OWN NPS-trained checkpoint -- the job
+#: passes --weights work/runs_tyolov8/tyolov8_nps-s<seed>/weights/best.pt -- exactly as ours
+#: and YOLOMG start from theirs, so no arm borrows another's prior. The 60 epochs, tiling and
+#: labels are the paired local arms' (configs/experiments/local_video.py); network, window,
+#: stabiliser (none) and optimizer are the paper's, as in the benchmark arms above.
+TYOLOV8_LOCAL_AB = ExperimentConfig(
+    name="tyolov8_local_ab",
+    datasets=("local:07_05",),
+    data="work/ext_datasets/local_yolo_temporal_dt15_centred_staboff/data.yaml",
+    protocol_key="specklock-centre",
+    build_command=("PYTHONPATH=. python tools/make_dataset_external.py --task local-temporal "
+                   "--tile 640 --stride-train 1 --stride-val 4 --min-side 0 "
+                   f"--dt {TYOLOV8_DT} --taps centred --stab off"),
+    notes="Temporal-YOLOv8 on the project's own task, fine-tuned from tyolov8_nps-s<seed>, "
+          "paired against temporal_local_ab and yolomg_local_ft on the held-out 10_06 flight.",
+    **dict(_TYOLOV8, epochs=60, tags=("prior-art", "temporal-yolov8", "local")),
+)
