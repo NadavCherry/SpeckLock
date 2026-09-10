@@ -3,8 +3,10 @@
     # most powerful (desktop GPU):
     .venv/bin/python final/run_final.py --video some.mp4 --profile pc-max --out out_dir
 
-    # real-time / edge profile (one nano net; ~74 fps on an RTX 5070 Laptop with a TensorRT engine, ~48-53 fps on the .pt fallback,
-    # projected 10-15 fps FP16 on a Jetson Orin Nano at 1280):
+    # real-time / edge profile (one nano net). Measured on an RTX 4090 (README section 8): 58.9 fps at
+    # 1280 with a TensorRT engine built for that card, 35.2 fps on the .pt fallback. The ~74 fps once
+    # reported on an RTX 5070 Laptop has not been reproduced; 10-15 fps FP16 on a Jetson Orin Nano
+    # at 1280 is a projection, never run on the device:
     .venv/bin/python final/run_final.py --video some.mp4 --profile edge-rt --out out_dir
 
 Outputs in --out:

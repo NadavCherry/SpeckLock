@@ -16,7 +16,9 @@ Runs one of the two deliverables end to end: detect → fuse → track → class
 # most accurate (desktop GPU, ~4 fps)
 python final/run_final.py --video path/to/video.mp4 --profile pc-max  --out out_pc
 
-# real-time (~74–85 fps on an RTX 5070 Laptop GPU — but only once you have built the TRT engine, below)
+# real-time: 58.9 fps at 1280 px on an RTX 4090 with a TensorRT engine built for it, 35.2 fps on the
+# .pt a fresh clone runs (README §8). The ~74–85 fps once reported on an RTX 5070 Laptop has not
+# been reproduced. Build the engine first (below).
 python final/run_final.py --video path/to/video.mp4 --profile edge-rt --out out_edge
 ```
 
