@@ -3,9 +3,10 @@
 #SBATCH --time 0-08:00:00
 #SBATCH --job-name sl_regensum
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/regensum-%j.out
-#SBATCH --mem=3900M
-### 3900M, measured rather than guessed: make_summary peaks at 3.21 GB over all 30 arms,
-### and the rule is the measured peak plus at most ~20%. (It was 4G -- 25% over.)
+#SBATCH --mem=3800M
+### 3800M, measured: make_summary peaked at 3,216,340 kB (job 21172524) = 3,141 MiB, and the
+### rule is the measured peak plus at most ~20%. It was 4G, then 3900M -- the second computed
+### from "3.21 GB" read as if it were MiB, which put it at 24% over.
 ### This cluster sets JobAcctGatherType=(null), so sacct MaxRSS and sstat are both
 ### empty and nothing ever contradicted an over-request. The python step below runs
 ### under /usr/bin/time -v and prints its own peak RSS into this job's log, so the
