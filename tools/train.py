@@ -102,20 +102,28 @@ def _run_git(repo: Path, *args: str) -> str | None:
     would stamp a manifest with a clean-tree provenance for a dirty tree.
 
     `out.stdout` can be None even when returncode is 0. `capture_output` with a `timeout`
-    reads the pipes on helper threads, and under heavy disk load one of those threads can
-    die -- pytest surfaced it as PytestUnhandledThreadExceptionWarning while a 40,000-tile
-    dataset build saturated the disk, and `out.stdout.strip()` then raised AttributeError
-    from inside build_manifest(). That is a crash in provenance bookkeeping taking down a
-    training run that was otherwise fine, which is the wrong way round.
+    reads the pipes on helper threads, and one of those threads can die -- pytest surfaced it
+    as PytestUnhandledThreadExceptionWarning, and `out.stdout.strip()` then raised
+    AttributeError from inside build_manifest(). That is a crash in provenance bookkeeping
+    taking down a training run that was otherwise fine, which is the wrong way round.
+
+    One cause is known exactly. With `text=True` the reader thread decodes git's UTF-8 output
+    in the locale's code page -- cp1255 on the Windows workstation -- and dies on the first
+    byte that code page lacks. The uncommitted diff is where such bytes live (an em dash in an
+    edited README is enough), so the diff hash silently became "unknown" whenever the tree held
+    one, and the test suite showed it as eleven intermittent warnings. The pipes are therefore
+    read as BYTES and decoded here, as UTF-8, where no bad byte can kill a thread. An earlier
+    note put the thread's death down to disk load during a large dataset build; this failure
+    needs no load at all, and may have been that case too.
     """
     try:
         out = subprocess.run(["git", "-C", str(repo), *args],
-                             capture_output=True, text=True, timeout=20)
+                             capture_output=True, timeout=20)
     except (OSError, subprocess.SubprocessError):
         return None
     if out.returncode != 0 or out.stdout is None:
         return None
-    return out.stdout.strip()
+    return out.stdout.decode("utf-8", errors="replace").strip()
 
 
 def git_provenance(repo: Path = REPO) -> dict[str, Any]:

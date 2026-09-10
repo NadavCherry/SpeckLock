@@ -567,6 +567,30 @@ def test_provenance_survives_git_being_unreadable(monkeypatch):
     json.dumps(g)                                   # still serialisable into the manifest
 
 
+def test_git_output_is_read_as_utf8_whatever_the_locale(monkeypatch):
+    """git writes UTF-8, and the helper must decode it as UTF-8 -- not in the locale's code page.
+
+    With `text=True` a cp1255 console killed the pipe-reader thread on the first em dash in an
+    uncommitted diff, so the manifest's diff hash became "unknown" -- intermittently, because it
+    depended on what the tree held. Reading bytes and decoding them in the caller removes the
+    thread's chance to fail; this pins both halves on every platform, not only on cp1255.
+    """
+    seen = {}
+
+    class _Out:
+        returncode = 0
+        stdout = "README — ‡ √ 0.159".encode("utf-8")
+        stderr = b""
+
+    def fake_run(*a, **k):
+        seen.update(k)
+        return _Out()
+
+    monkeypatch.setattr(T.subprocess, "run", fake_run)
+    assert T._run_git(REPO, "diff", "HEAD") == "README — ‡ √ 0.159"
+    assert "text" not in seen and "encoding" not in seen    # no decoding on a reader thread
+
+
 # ============================================================= train_one, with a fake GPU
 def test_manifest_is_written_before_the_trainer_is_called(tmp_path, demo_cfg):
     """A run that crashes in epoch 3 must still be traceable. This is the whole point."""
