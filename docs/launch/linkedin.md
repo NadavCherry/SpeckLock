@@ -127,7 +127,7 @@ For a comment reply, a DM, or a CV bullet.
 > ordering reverses on every seed but does not reach significance under a paired
 > bootstrap + permutation test, and is reported as a trend.
 >
-> 950 tests. Every number points at the score-ordered detections that produced it.
+> 963 tests. Every number points at the score-ordered detections that produced it.
 
 ---
 

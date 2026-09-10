@@ -330,7 +330,7 @@ Scorecards: [city](work/pursuit/city/METRICS.md) · [pursuit campaign](work/purs
 | City defence, real seeker | **0 / 3** | 3 engagements | 🟡 ⚠️ |
 | dt = 6 optimality | **not established** | 27 runs | ⚠️ |
 | 100+ FPS edge model | **did not reproduce** | — | ⚠️ |
-| Tests | **950**, ~40 s | — | `python -m pytest` |
+| Tests | **963** (1 skipped), ~90 s on one cluster CPU core | — | `python -m pytest` |
 
 ---
 

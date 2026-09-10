@@ -10,14 +10,17 @@
 ### no paired table; re-running them would spend an hour to change nothing.
 ###
 ### Sized from the last measured run, cluster_logs/sizecurve-20894039.out (/usr/bin/time):
-### nps/mission 40:00 at 608 MB, ardmav/mission 1:23:00 at 525 MB. 750M is the larger peak
-### plus ~20% (submit ardmav with --mem=650M); 2h30 is the longer run plus a margin.
+### nps/mission 40:00 at 608 MB, ardmav/mission 1:23:00 at 525 MB -- but those are the
+### size_curve STEP, and the job's peak is the suite gate that runs first. Sized from the step
+### alone (650M), an ardmav run was OOM-killed inside the gate (job 21171636); the nps run
+### cleared the same gate at 750M. So both run at 750M, and the gate now runs under
+### /usr/bin/time so its own peak is on record. 2h30 is the longer run plus a margin.
 ### JobAcctGatherType=(null) here, so the step prints its own peak RSS for next time.
 ###
 ### NO --gpus: this reads detection JSON that already exists and does arithmetic.
 ###
 ###     sbatch cluster/sizecurve_paired.sbatch nps
-###     sbatch --mem=650M cluster/sizecurve_paired.sbatch ardmav
+###     sbatch cluster/sizecurve_paired.sbatch ardmav
 set -uo pipefail
 DS=${1:?usage: sizecurve_paired.sbatch nps|ardmav}
 ROOT=${SPECKLOCK_ROOT:-/home/cherryn/projects/SpeckLock}
@@ -27,8 +30,10 @@ echo "JOB $SLURM_JOB_ID on $(hostname): $DS / mission, root $ROOT"
 
 ### Gate on the suite: the paired block runs last, after the whole resampling, so a
 ### regression there would otherwise surface an hour in.
-python -m pytest -q --no-header -x 2>&1 | tail -5
-if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+/usr/bin/time -v -o "suite_time.$$" python -m pytest -q --no-header -x 2>&1 | tail -5
+rc=${PIPESTATUS[0]}
+grep -E "Elapsed \(wall|Maximum resident" "suite_time.$$" | sed 's/^/suite gate: /'; rm -f "suite_time.$$"
+if [ "$rc" -ne 0 ]; then
     echo "*** SUITE FAILED -- refusing to produce numbers from a broken evaluator ***"; exit 1
 fi
 
