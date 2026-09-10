@@ -39,5 +39,13 @@ for S in 0 1 2; do
              tyolov8="$NEW" \
       --protocol specklock-centre --block-frames 30 --out "$OUT" || { rc=1; continue; }
   python tools/report_diff.py "work/reports/local_ft_10_06_seed${S}.md" "$OUT" || rc=1
+  ### The direct question -- ours against Temporal-YOLOv8 -- with Temporal-YOLOv8 as the
+  ### baseline, so the temporal row's delta, interval and p are ours minus theirs. The report
+  ### above answers a different question (each arm against the single frame). Declared before
+  ### any of this arm's detections existed.
+  /usr/bin/time -v python -u tools/compare_single_video.py --gt "$GT" --baseline tyolov8 \
+      --dets temporal="$SHIP/temporal_local_ab-s${S}" tyolov8="$NEW" \
+      --protocol specklock-centre --block-frames 30 \
+      --out "work/reports/local_ft_ours_vs_tyolov8_10_06_seed${S}.md" || rc=1
 done
 echo "=== RESULT ==="; echo "exit=$rc"; exit $rc
