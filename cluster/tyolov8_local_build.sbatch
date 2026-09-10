@@ -3,12 +3,10 @@
 #SBATCH --time 0-02:00:00
 #SBATCH --job-name sl_tylocbuild
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tylocbuild-%j.out
-#SBATCH --mem=300M
-### 300M is sized from a measurement plus one unmeasured step. The same builder peaked at
-### 222,352 kB building ARD-MAV's 1920x1080 centred set (job 21175379, /usr/bin/time); these
-### videos are 1280x720. The test gate below imports the same modules plus pytest and has never
-### been measured, so the estimate for the job is ~250 MB and this is that plus ~20 %. Both
-### steps now run under /usr/bin/time, so the next edit of this line comes from the log.
+#SBATCH --mem=160M
+### 160M, measured: the first run (job 21175761) peaked at 135,428 kB in the build and 79,296 kB
+### in the test gate, under /usr/bin/time -- one process each. 132 MiB plus ~20 %. It was 300M,
+### estimated from the benchmark build on larger video before either step had been measured here.
 ###
 ### NO --gpus: decoding video and writing tiles are infrastructure.
 ###
