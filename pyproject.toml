@@ -31,7 +31,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "specklock"
-description = "See a 3-14 px drone from a moving camera, then close on it with camera-only guidance."
+description = "Detect a 3-14 px drone by stacking stabilised moments of video, then close on it with camera-only guidance."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "AGPL-3.0-only"

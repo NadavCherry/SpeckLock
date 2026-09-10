@@ -11,9 +11,9 @@
      against it), and the 24/24 run used detector "oracle", the simulator's own box with
      zero latency. The honest closed-loop number, with a seeker that has to find the
      target itself, is 54/62. Keep these in step with the README results table. -->
-<meta name="description" content="Finding a drone that is 3-14 pixels wide in 720p video from a moving camera, then flying into it with nothing but that camera. AP 0.809 on ARD-MAV's official 15-video split; 54 of 62 closed-loop intercepts in simulation with a real detector.">
+<meta name="description" content="Finding a drone that is 3-14 pixels wide in 720p video, then flying into it with nothing but that camera. AP 0.809 on ARD-MAV's official 15-video split; 54 of 62 closed-loop intercepts in simulation with a real detector.">
 <meta property="og:title" content="SpeckLock — see the drone, then hit it">
-<meta property="og:description" content="A drone 4 pixels wide is invisible in any single frame. Stack three moments as colour channels and it is not. Then proportional navigation does the rest — 54 of 62 intercepts in simulation, flown on the seeker's own detections.">
+<meta property="og:description" content="On one near-static clip, a single-frame detector ranks a few-pixel drone below its clutter (AP 0.159); the same network on three stabilised moments, stacked as colour channels, scores 0.895. Then proportional navigation closes on it — 54 of 62 intercepts in simulation, flown on the seeker's own detections.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://nadavcherry.github.io/SpeckLock/">
 <meta property="og:image" content="https://nadavcherry.github.io/SpeckLock/media/social_card.png">
@@ -213,7 +213,7 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
   <div class="eyebrow">SpeckLock</div>
   <h1>See the drone,<br>then hit it.</h1>
   <p class="lede">
-    Find a drone that occupies <b>3&ndash;14 pixels</b> in 720p video from a moving camera —
+    Find a drone that occupies <b>3&ndash;14 pixels</b> in 720p video —
     then <b>fly into it</b>, using nothing but that camera. No radar, no datalink, no GPS on
     the target.
   </p>
@@ -231,7 +231,7 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
       at 12&nbsp;m/s, 170&nbsp;m out and <b>2.7 pixels across</b>, diving on a plaza block. All
       four camera feeds are shown; the outlined one owns the track. Green is the truth, the
       yellow ring is what the seeker believes, and the magnified inset — contrast-stretched,
-      because three pixels of drone against bright sky are otherwise invisible — is the target
+      because at playback size three pixels of drone against bright sky are hard to see — is the target
       itself. The map shows the buildings, both flight paths, and a red cross on the wall the
       intruder was aiming at. It never got there: <b>intercepted at 7.0&nbsp;s with 3.3&nbsp;s
       to spare, passing 0.13&nbsp;m from it.</b>
@@ -246,7 +246,7 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
     </div>
     <div class="stat">
       <div class="v">0.159 → 0.895</div><div class="k">AP, one frame vs three moments</div>
-      <div class="n">Same network and settings, one real video. Only the temporal arm also trained on pasted instances &#8212; a confound the README names.</div>
+      <div class="n">Same network and settings, one real video from a near-static camera. Only the temporal arm also trained on pasted instances &#8212; a confound the README names.</div>
       <div class="prov"><i style="background:var(--real)"></i>real video</div>
     </div>
     <div class="stat">
@@ -270,18 +270,21 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
 <section id="problem">
   <h2><span class="num">01</span>The problem</h2>
   <p class="sub">
-    A drone crossing a field at 4&ndash;10 pixels is invisible in a single frame — to a detector
-    <em>and</em> to a human. That is not a tuning problem. There is no threshold that finds it,
-    because in one frame there is nothing there to find.
+    A drone crossing a field at 4&ndash;11 pixels is in the frame, but in one frame it is hard
+    to tell from everything else. The controlled single-frame detector does put a box on it in
+    <b>57&nbsp;%</b> of labelled frames — if all 5,447 of its detections are kept, about
+    96&nbsp;% of them false. At its best-F1 threshold, chosen on the same video, it finds
+    20&nbsp;%. The difficulty is not finding the drone at all; it is ranking it above the
+    clutter.
   </p>
 
   <figure>
-    <img src="media/temporal_input.jpg" alt="Left: a single video frame in which the drone cannot be seen. Right: three grayscale moments stacked as R/G/B, in which the drone appears as three coloured blips.">
+    <img src="media/temporal_input.jpg" alt="Left: a single video frame in which the drone is hard to pick out. Right: three grayscale moments stacked as R/G/B, in which the drone appears as three coloured blips.">
     <figcaption>
-      Same spot, same moment. <b>Left:</b> find the drone. You mostly can't, and neither can a
-      single-frame detector &#8212; the controlled one scores AP 0.159. <b>Right:</b> the detector's actual input.
+      Same spot, same moment. <b>Left:</b> find the drone. It is there, but hard to pick out;
+      the controlled single-frame detector scores AP 0.159 on this video. <b>Right:</b> the detector's actual input.
       Stabilise the video, then stack three grayscale moments as the R/G/B channels of one image:
-      everything static cancels to grey, and anything that moved leaves coloured blips — one per
+      everything the stabiliser aligns cancels to grey, and anything that moved leaves coloured blips — one per
       moment in time. <b>Yellow</b> = where the drone was 12 frames ago, <b>magenta</b> = 6 ago,
       <b>cyan</b> (circled) = now. The trail even shows its direction of flight.
     </figcaption>

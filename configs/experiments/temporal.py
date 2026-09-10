@@ -2,7 +2,7 @@
 
 The project's founding measurement is single-frame mAP50 0.06 -> temporal-stack 0.83,
 same network, same recipe -- but that was measured on this repo's own two clips, where a
-4 px black drone against a bright sky is close to invisible in one frame. A reviewer is
+4 px black drone against a bright sky is hard to separate from clutter in one frame. A reviewer is
 entitled to ask whether the gap survives on a public corpus with 11.8 px targets, and
 that question has never been asked here.
 

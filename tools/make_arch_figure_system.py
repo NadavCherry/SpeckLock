@@ -108,15 +108,22 @@ def main() -> int:
     # 1 -- detection, on real video
     # =======================================================================
     LY, LH = 108, 302
+    # The title once read "a drone 4 pixels wide is invisible in any single frame". The
+    # controlled single-frame arm finds the drone in 57 % of labelled frames when every
+    # detection counts (work/ablation/REPORT.md, 1a); what it cannot do is rank it above the
+    # clutter. The measured claim replaces the rhetorical one.
     lane(F, LY, LH, "1",
-         "SEE &#8212; a drone 4 pixels wide is invisible in any single frame",
+         "SEE &#8212; three stabilised moments as colour: AP 0.159 &#8594; 0.895 on one near-static clip",
          "measured on real video", GREEN)
     cy = LY + 66
     CH = 162
     boxes = [(44, 200), (292, 218), (558, 384), (990, 296), (1334, 296), (1678, 318)]
 
+    # "camera may move", not "the camera moves too": the stabiliser exists for a moving camera,
+    # but the video behind the headline number drifts ~1 px over the whole clip
+    # (work/reports/camera_motion/local.md), and the figure must not imply otherwise.
     panel(F, 44, cy, 200, CH, "INPUT", BLUE, "video",
-          ["1280 &#215; 720, 30 fps", "drone 3&#8211;14 px", "the camera moves too"])
+          ["1280 &#215; 720, 30 fps", "drone 3&#8211;14 px", "camera may move"])
     panel(F, 292, cy, 218, CH, "STAGE 0", EDGE, "stabilise",
           ["phase correlation", "global camera motion", "removed, frame by frame"])
 

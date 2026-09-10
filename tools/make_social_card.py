@@ -33,7 +33,7 @@ W, H = 1280, 640
 # retracted by the README, and both still rendered here as the og:image a shared link
 # shows, because the text was corrected and the picture was never regenerated.
 STATS = [
-    ("0.159 &#8594; 0.895", "AP: 1 frame vs 3 moments", "one real video &#183; same network", GREEN),
+    ("0.159 &#8594; 0.895", "AP: 1 frame vs 3 moments", "one video &#183; near-static camera", GREEN),
     ("0.809", "AP, ARD-MAV", "official test split &#183; 3 seeds", GREEN),
     ("54 / 62", "closed-loop intercepts", "sim &#183; seeker's own detections", AMBER),
     ("58.9 fps", "1280 px, TensorRT FP16", "RTX 4090 &#183; AP in the same pass", GREEN),
@@ -45,9 +45,12 @@ def main() -> int:
 
     F.svg.append(f'<text x="64" y="118" font-size="58" font-weight="700" fill="{TXT}">'
                  f'See the drone, then hit it</text>')
+    # No "from a moving camera": the headline detection number is from a camera that drifts
+    # ~1 px over the whole clip, and on the two moving-camera benchmarks the temporal stack
+    # does not separate from a single frame (README section 6).
     F.svg.append(f'<text x="64" y="166" font-size="23" fill="{SUB}">'
                  f'Finding a drone <tspan font-weight="700" fill="{TXT}">3&#8211;14 pixels</tspan> '
-                 f'wide in 720p video from a moving camera &#8212;</text>')
+                 f'wide in 720p video &#8212;</text>')
     F.svg.append(f'<text x="64" y="200" font-size="23" fill="{SUB}">'
                  f'then flying into it, with nothing but that camera.</text>')
 
