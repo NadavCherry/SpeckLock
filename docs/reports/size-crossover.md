@@ -42,22 +42,24 @@ arms, so the right test is a **paired** one over sequences — which is what the
 project reports, and what `tools/make_summary.py` already does for overall AP.
 
 Paired bootstrap **and** permutation over the 15 shared sequences, seed-matched. A bin is
-called significant only when both agree:
+called significant only when both agree **after a Holm correction across the table's 15 rows**
+(docs/research/INFRA.md section 6.1). Where the correction moved a p, it is shown raw → adjusted:
 
 | bin | seed 0 | seed 1 | seed 2 | verdict |
 |---|---|---|---|---|
 | <8 px | +0.065 (p=0.53) | +0.104 (p=0.28) | +0.079 (p=0.43) | **not significant** |
 | 8–10 px | +0.076 (p=0.42) | +0.114 (p=0.36) | +0.095 (p=0.57) | **not significant** |
-| 10–16 px | −0.081 (p=0.014) ✔ | −0.041 (p=0.15) | −0.045 (p=0.084) | 1 of 3 |
-| 16–25 px | −0.185 (p=0.001) ✔ | −0.121 (p=0.001) ✔ | −0.171 (p=0.001) ✔ | **significant, all 3** |
-| >25 px | −0.206 (p=0.001) ✔ | −0.126 (p=0.032) ✔ | −0.169 (p=0.002) ✔ | **significant, all 3** |
+| 10–16 px | −0.081 (p=0.014 → 0.140) | −0.041 (p=0.15) | −0.045 (p=0.084) | **not significant** (1 of 3 before Holm) |
+| 16–25 px | −0.185 (p=0.001 → 0.015) ✔ | −0.121 (p=0.001 → 0.015) ✔ | −0.171 (p=0.001 → 0.015) ✔ | **significant, all 3** |
+| >25 px | −0.206 (p=0.001 → 0.015) ✔ | −0.126 (p=0.032 → 0.288) | −0.169 (p=0.002 → 0.022) ✔ | **significant, 2 of 3** (all 3 before Holm) |
 
 > **Only the competitor's side of the crossover is statistically significant.**
 >
 > Our advantage below 10 px points the same way on every seed and every bin, and it is not
 > small (+0.065 to +0.114). But with 15 sequences and the variance between them, a paired
 > test cannot distinguish it from zero — p<sub>perm</sub> between 0.28 and 0.57. Their
-> advantage above 16 px clears the same bar on all three seeds with p ≈ 0.001.
+> advantage at 16–25 px clears the same bar on all three seeds after the Holm correction
+> (adjusted p 0.015); at >25 px it does on two of three.
 >
 > The honest reading: **the crossover is visible in the means and consistent in direction,
 > but it is not yet established.** Three seeds all favouring us in both small bins is
@@ -73,7 +75,7 @@ called significant only when both agree:
 
 **NPS-Drones contains no ground truth below 10 px.** The `<8 px` and `8–10 px` bins are
 empty — not zero, absent. No claim about tiny targets can be supported or refuted with this
-dataset, in either direction. YOLOMG leads in both populated bins, significant on 1 seed of 3.
+dataset, in either direction. YOLOMG leads in both populated bins; after the Holm correction one seed of the 16–25 px bin stays significant (adjusted p 0.018), and the 10–16 px mark does not.
 
 An earlier version of the tool announced a "crossover between 16–25 px and >25 px" here. That
 was a bug in the reporting, not a finding: the `>25 px` bin holds 28 instances, both arms

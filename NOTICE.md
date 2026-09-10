@@ -58,8 +58,9 @@ own terms, and you should read them before using either commercially:
 Stated here as well as in the README, because it is the thing most easily
 misread from a headline number:
 
-* **Detection results are measured on real video** — hand-labelled, with the
-  test video never trained on and never used for model selection.
+* **Detection results are measured on real video** — hand-labelled. The local test
+  video (`10_06`) was never trained on, but six track-classifier constants were tuned
+  against it, so it is a development set rather than an unseen one.
 * **Interception results are measured in simulation** — a closed-loop NVIDIA
   Isaac Sim renderer at 20 Hz, with a rendered town and rendered aircraft.
   **There is no flight test in this repository.**

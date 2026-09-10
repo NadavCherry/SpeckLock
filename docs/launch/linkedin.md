@@ -34,9 +34,10 @@ mechanism, #2 immediately backs it with a controlled measurement. #3 and #5 are 
 > channels and it isn't.**
 >
 > That's the whole idea behind SpeckLock, and here's what it's worth: **AP 0.159 → 0.895.**
-> Same network, same training data, same 1280 px input, same pipeline. The only thing that
-> changed is whether the three input channels carry one frame's colour or three moments in
-> time — t−12, t−6, and now, as R, G and B.
+> Same network, same settings, same 1280 px input, same pipeline. What changed is whether the
+> three input channels carry one frame's colour or three moments in time — t−12, t−6, and now,
+> as R, G and B. One confound I have to name: only the temporal arm's training set had extra
+> drone and bird instances pasted in.
 >
 > Stabilise the video first and the static world cancels to grey. Anything that moved
 > leaves a coloured trail. A detector that had nothing to look at suddenly does.
@@ -53,15 +54,17 @@ mechanism, #2 immediately backs it with a controlled measurement. #3 and #5 are 
 > configuration runs at **58.9 fps with AP 0.876** — accuracy and speed measured in the
 > same pass, so the two numbers describe one execution and can't drift apart.
 >
-> **The result I'm most pleased with.** The test video carries eight hand-labelled bird
+> **The result I'm most pleased with.** The training video carries eight hand-labelled bird
 > tracks — 934 instances, median 6.0 px, the same size band as the 8.0 px drone. The
 > detector fires on those birds constantly: 440 detections land on them. **Zero are ever
 > raised as a target.** Three bird tracks form and the classifier rejects all three.
 > Appearance can't separate a bird from a drone at six pixels. How the thing moved, over a
-> whole track, can.
+> whole track, can. It's measured on the video the detector trained on, so it shows the
+> mechanism, not held-out generalisation.
 >
 > **What I won't claim.** On the two public benchmarks, the competitor I retrained from its
-> own code beats me overall — 0.834 vs 0.809 on ARD-MAV, 0.527 vs 0.487 on NPS. Below 10
+> own code is ahead overall — 0.834 vs 0.809 on ARD-MAV, 0.527 vs 0.487 on NPS — though a
+> corrected paired test separates neither. Below 10
 > pixels the ordering reverses on every seed, but a paired significance test can't
 > distinguish that from noise, so I'm calling it a consistent trend and not a result. It's
 > in the README in those words.
@@ -91,8 +94,8 @@ that isn't in the repository.
 |---|---|---|---|
 | **1** | `docs/media/temporal_input.jpg` | **Find the drone.** | Left: one frame — you can't, and neither can a detector. Right: the same instant as three stacked moments. Yellow = 12 frames ago, magenta = 6, cyan = now. |
 | **2** | `fig5_qualitative_tiny_target.png` | **What the detector actually sees** | The same target at 6.5, 9.2, 14.5 and 20.6 px. Top row is one frame; bottom is three moments as R, G, B. The coloured edges on the buildings are parallax the stabiliser can't remove — that's the clutter the detector has to reject. |
-| **3** | `fig3_single_vs_temporal.png` | **0.159 → 0.895** | Same network, same corpus, same resolution. The only variable is the input representation. |
-| **4** | `fig1_accuracy_vs_size.png` | **Where it helps, and where it doesn't** | Accuracy against target size, three datasets, three seeds. Red brackets mark bins a paired test actually separated — and they're all on the competitor's side. |
+| **3** | `fig3_single_vs_temporal.png` | **0.159 → 0.895** | Same network, settings and resolution — though only the temporal arm also trained on pasted instances. |
+| **4** | `fig1_accuracy_vs_size.png` | **Where it helps, and where it doesn't** | Accuracy against target size, three datasets, three seeds. Red brackets mark bins a Holm-corrected paired test separated on every seed — and they're all on the competitor's side. |
 | **5** | `fig4_dt_ablation.png` | **The ablation that changed my mind** | Left: tap spacing on validation — a clean peak at the value I ship. Right: the same models on held-out test. Different ranking, nothing separates. One seed would have given me either answer. |
 
 **Order matters.** Slide 1 is the hook, 2 makes it concrete, 3 is the payoff, and 4–5 are
@@ -112,14 +115,15 @@ For a comment reply, a DM, or a CV bullet.
 > stride-4 P2 head, tracked with a Kalman filter in stabilised coordinates, and classified
 > at the track rather than the frame.
 >
-> Controlled ablation of the representation alone: **AP 0.159 → 0.895** (same network
-> family, corpus, and 1280 px input). Bird rejection measured at track level: **0 raised
-> over 934 labelled bird instances**, from 440 detections that land on them. Edge
+> Controlled ablation of the input representation: **AP 0.159 → 0.895** (same network,
+> settings and 1280 px input; only the temporal arm's training set had pasted instances).
+> Bird rejection measured at track level, on the training video: **0 raised over 934
+> labelled bird instances**, from 440 detections that land on them. Edge
 > configuration: **58.9 fps at AP 0.876**, RTX 4090, TensorRT FP16, accuracy and speed from
 > one pass.
 >
 > Compared against YOLOMG retrained from its own code on our splits and scored by one
-> evaluator: it leads overall (0.834/0.809 ARD-MAV, 0.527/0.487 NPS). Below 10 px the
+> evaluator: it leads on point estimates (0.834/0.809 ARD-MAV, 0.527/0.487 NPS). Below 10 px the
 > ordering reverses on every seed but does not reach significance under a paired
 > bootstrap + permutation test, and is reported as a trend.
 >

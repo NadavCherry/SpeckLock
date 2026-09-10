@@ -9,13 +9,14 @@ evaluation tables — [`work/eval_round3_0705val.md`](../work/eval_round3_0705va
 for the edge lineup [`realtime/work/eval3_0705_val.md`](../realtime/work/eval3_0705_val.md) /
 [`eval3_1006_test.md`](../realtime/work/eval3_1006_test.md) — not as run directories: `work/runs/`
 is training output and is not tracked).
-`data/videos/10_06.mp4` was never trained on and never used for model selection — it is the test video.
+`data/videos/10_06.mp4` was never trained on — it is the test video — but six track-classifier constants were hand-set against it, so it is a development set rather than an unseen one.
 
 > **Full-length test video.** The source files hide their opening seconds behind an MP4
 > edit list (`tools/recover_full_video.py` recovers them losslessly — `data/videos/10_06.mp4` is really
 > 591 frames / 19.7 s, not 361 / 12 s). Both profiles were re-run end-to-end on the
-> recovered full video: tracked **AP/F1/R/P = 1.000, zero false alarms** hold on the
-> labeled range, and PC-MAX additionally finds + confirms the drone's earlier *exit pass*
+> recovered full video: tracked AP/F1 = 1.000 holds on the labeled range — score-weighted per
+> frame; at the track PC-MAX raises four sustained false drone tracks on this video (README §7) —
+> and PC-MAX additionally finds + confirms the drone's earlier *exit pass*
 > in the pre-roll (drone track, frames 14–86; it re-enters at the same spot 7 s later as
 > the known flight). Annotated full-length videos: [PC-MAX](../docs/media/10_06_pcmax_tracks.mp4) ·
 > [EDGE-RT](../docs/media/10_06_edgert_tracks.mp4) ·
@@ -30,8 +31,9 @@ temporal integration —
   <img src="../docs/media/architecture_pcmax.svg" width="1000" alt="PC-MAX architecture"/>
 </p>
 
-- shipped-package score on the unseen test video: **tracked AP/F1/R/P = 1.000, zero
-  false positives** (per-frame AP 0.846); drone confirmed 7 frames after track birth;
+- shipped-package score on `10_06`, a development video: tracked AP/F1 = 1.000 score-weighted
+  per frame (per-frame AP 0.846) — at the track it raises four sustained false drone tracks
+  (README §7); drone confirmed 7 frames after track birth;
   also reports the landed drone as a separate `near` track. ~4 fps on an RTX 5070 laptop.
   (Split-trained generation for honest-ablation numbers: `docs/reports/round3-deliverables.md` §5 — same 1.000
   tracked, per-frame 0.910.)
@@ -46,8 +48,11 @@ One nano network on the 3-frame stabilized stack — no proposal stage, no exper
   <img src="../docs/media/architecture_edgert.svg" width="1000" alt="EDGE-RT architecture"/>
 </p>
 
-- shipped-package score on the unseen test video: **tracked AP/F1/R/P = 1.000, zero
-  false positives** (per-frame AP 0.876); drone confirmed 10 frames after track birth.
+- shipped-package score on `10_06`, a development video: tracked AP/F1 = 1.000 score-weighted
+  per frame (per-frame AP 0.876) — not a track-level false-alarm count; drone confirmed 10
+  frames after track birth. Re-measured on an RTX 4090 with a rebuilt engine, in the same pass as
+  the accuracy: **58.9 fps at AP 0.876** (README §8). The rest of this paragraph is the round-3
+  measurement on an RTX 5070 Laptop, which has not been reproduced:
   **~74 fps** through `run_final.py` on an RTX 5070 Laptop
   (13.5 ms/frame, `docs/reports/round3-deliverables.md` §6), and 84.8 fps for the lean
   `realtime` runner it wraps — that one is 11.8 ms of wall clock against 9.5 ms of

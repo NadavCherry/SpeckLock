@@ -29,13 +29,17 @@ Every claim carries one of three marks. Nothing here is stated without one.
 
 Two conventions the numbers depend on:
 
-* **Matching is by centre distance** (τ = 12 px), not IoU. A 1–2 px shift zeroes IoU on a 6 px
-  box, so IoU measures annotation jitter rather than detection. Published papers report IoU, so
-  our numbers and theirs are **not the same quantity** and are never subtracted.
-  [`dronedet/metrics.py`](dronedet/metrics.py) refuses the subtraction in code.
+* **Matching depends on the data.** On this project's own videos it is by centre distance
+  (τ = 12 px): a 1–2 px shift zeroes IoU on a 6 px box, so there IoU would measure annotation
+  jitter rather than detection. On **ARD-MAV and NPS** (§4–§6) it is **IoU ≥ 0.5**, each
+  benchmark's own protocol — the same kind of number the papers report. A centre-distance number
+  and an IoU number are never subtracted; [`dronedet/metrics.py`](dronedet/metrics.py) refuses the
+  subtraction in code.
 * **Significance means two tests agreeing.** A paired bootstrap **and** a permutation test over
   sequences, seed-matched. One test alone will call a small-N difference significant; requiring
-  both makes a thin result *inconclusive* rather than manufacturing confidence.
+  both makes a thin result *inconclusive* rather than manufacturing confidence. The results
+  summary and the size curve also **Holm-correct across each table**, so the best of many
+  comparisons is not reported as a finding.
 
 ---
 
@@ -48,8 +52,8 @@ trail.
 <p align="center">
   <img src="docs/media/temporal_input.jpg" width="900" alt="A single frame in which the drone cannot be seen, beside the three-moment stack in which it can"/>
   <br/>
-  <em><b>Left:</b> find the drone. You can't — nor can any single-frame detector, at any
-  confidence. <b>Right:</b> the detector's actual input. <b>Yellow</b> = 12 frames ago,
+  <em><b>Left:</b> find the drone. You mostly can't, and neither can a single-frame detector — the
+  controlled one in §3 scores AP 0.159. <b>Right:</b> the detector's actual input. <b>Yellow</b> = 12 frames ago,
   <b>magenta</b> = 6 ago, <b>cyan</b> (circled) = now. The trail even shows its direction of
   flight.</em>
 </p>
@@ -68,10 +72,13 @@ contribution, not the architecture.**
 | single frame, RGB | **0.159** | [0.030, 0.366] | 0.199 | 0.337 |
 | **3-moment temporal stack** | **0.895** | [0.776, 0.976] | 0.840 | 0.946 |
 
-**Same network family, same training corpus, same 1280 px, same pipeline, same video.** The only
-difference between those two rows is whether the three input channels carry three moments or one
-frame's colour. That is what makes this an ablation of the representation rather than a comparison
-of two systems.
+**Same network, same hyperparameters and seed, same 1280 px, same pipeline, same video** — the two
+checkpoints decode to identical training arguments apart from the dataset path. **One confound
+remains, and it is not small:** only the temporal arm's training set carries pasted drone and bird
+instances (`realtime/tools/make_datasets_rt.py` applies copy-paste only `if temporal:`), and
+[`realtime/README.md`](realtime/README.md) credits that augmentation with a large share of the
+temporal arm's gain. So this gap is the representation *together with* that augmentation. A
+single-frame arm trained on the same pastes was runnable and has not been run.
 
 > ⚠️ An earlier version of this table compared an off-the-shelf detector at 1760 px against this
 > pipeline at 1280 — different architecture, different training corpus **and** different
@@ -118,14 +125,18 @@ it a *paired* measurement rather than a published scalar taken on trust.
 | NPS-Drones, video-disjoint test | 0.487 | **0.527** | **them** |
 | our own 8 px task (fine-tuned) | **0.840** | 0.604 | us |
 
-**They lead on both public benchmarks, and their lead is the one that reaches significance.** That
-is the honest headline of this comparison, and it is stated first for that reason.
+**They lead on both public benchmarks — on point estimates.** Under the paired test, Holm-corrected
+across the table, that overall lead is significant on no seed of either benchmark; what does reach
+significance is their advantage on large targets (§4, §6). That is the honest headline of this
+comparison, and it is stated first for that reason.
 
 What survives alongside it: below 10 px the ordering reverses (§4), and on the 8 px task — where
 every target is smaller than any bin ARD-MAV can populate — we lead in every populated bin.
 
-> Published numbers are IoU-based on each paper's own split; ours are centre-distance on
-> whole-video held-out splits. Read this as a **class** comparison, not a leaderboard entry.
+> Published numbers are IoU ≥ 0.5 on each paper's own split. Ours on ARD-MAV and NPS are IoU ≥ 0.5
+> too — but NPS is scored on a video-disjoint split rather than the published one, and which
+> videos are held out is the largest single term in the accounting below. Read this as a
+> **class** comparison, not a leaderboard entry.
 
 ### Why the published NPS number is 0.95 and ours is 0.527
 
@@ -153,9 +164,17 @@ This section exists because the rest of the file would be misleading without it.
 
 ⚠️ **Our small-target advantage is a trend, not a result.** The +0.083 and +0.095 leads in §4 point
 the same way on every seed and every bin, but paired testing over 15 sequences cannot separate them
-from zero — p<sub>perm</sub> between 0.28 and 0.57. YOLOMG's lead at 16–25 px and >25 px clears the
-same bar on all three seeds at p ≈ 0.001. **Only their side is significant.** More test *sequences*
-would settle it; more seeds cannot.
+from zero — p<sub>perm</sub> between 0.28 and 0.57. YOLOMG's lead at 16–25 px survives a Holm
+correction on all three seeds (adjusted p 0.015); at >25 px it survives on two of three.
+**Only their side is significant.** More test *sequences* would settle it; more seeds cannot.
+
+⚠️ **On the two moving-camera benchmarks, the representation does not separate from a single
+frame.** Temporal against this project's own single-frame control, seed-matched, both training
+budgets: **"no difference" on all 6 ARD-MAV rows and all 6 NPS rows** once the table is
+Holm-corrected ([SUMMARY](work/reports/SUMMARY.md)). Uncorrected, NPS showed the temporal stack
+*worse* on two rows; neither survives. The §3 result, by contrast, is measured on `10_06`, whose
+camera drifts 0.76 px in x and 1.07 px in y across the whole clip
+([measured](docs/research/datasets-and-benchmarks-2026.md)).
 
 ⚠️ **dt = 6 is not the measured optimum.** The founding constant — taps at t−12/t−6/t — was swept
 over dt ∈ {2,4,6,8,12}, 3 seeds each, 27 runs. On validation it is a clean inverted U peaking at 6.
@@ -178,9 +197,10 @@ Nothing reached three figures. [edge model](docs/reports/edge-model.md).
 
 ## 7 · Birds, and the harder problem behind them
 
-🟢 **demonstrated.** `07_05` carries eight hand-labelled bird tracks — **934 instances, median
-6.0 px**, the same size band as the 8.0 px drone. Measured **at the track**, which is where the
-system actually decides:
+🟢 **demonstrated — on the training video.** `07_05` is the video the detector trains on, and the
+only one that supplies bird supervision. It carries eight hand-labelled bird tracks — **934
+instances, median 6.0 px**, the same size band as the 8.0 px drone. Measured **at the track**,
+which is where the system actually decides:
 
 | | |
 |---|---|
@@ -286,7 +306,7 @@ perception. Quoting it as the system's performance would be wrong: **the same mi
 seeker's own detections is 0/3.**
 
 <p align="center">
-  <img src="docs/media/chart_cpa.png" width="900" alt="Closest approach for all 24 city engagements against arrival bearing"/>
+  <img src="docs/media/chart_cpa.png" width="900" alt="Closest approach for all 24 perfect-sensor city engagements against arrival bearing"/>
 </p>
 
 Scorecards: [city](work/pursuit/city/METRICS.md) · [pursuit campaign](work/pursuit/final/METRICS.md) ·
@@ -298,11 +318,12 @@ Scorecards: [city](work/pursuit/city/METRICS.md) · [pursuit campaign](work/purs
 
 | | result | n | mark |
 |---|---|---|---|
-| Temporal representation, controlled | **0.159 → 0.895** AP | 1 video · 337 boxes | 🟢 |
+| Temporal representation, controlled | **0.159 → 0.895** AP, one augmentation confound (§3) | 1 video · 337 boxes | 🟢 |
+| Temporal vs single-frame, moving camera | **no difference**, ARD-MAV and NPS (§6) | 2 benchmarks × 3 seeds × 2 budgets | ⚠️ |
 | ARD-MAV, official 15-video split | **0.809** (3 seeds, 100 ep) | 15 videos · 28,160 boxes | 🟢 |
-| Versus YOLOMG, same evaluator | they lead 0.834 / 0.527; we lead <10 px, **not significantly** | 2 benchmarks × 3 seeds | 🟢 |
+| Versus YOLOMG, same evaluator | they lead 0.834 / 0.527, significant on no seed after Holm; we lead <10 px, **not significantly** | 2 benchmarks × 3 seeds | 🟢 |
 | Our 8 px task, fine-tuned | **0.840** vs 0.604 | 1 flight × 3 seeds | 🟢 |
-| Birds raised as targets | **0** over **934** instances | 8 bird tracks | 🟢 |
+| Birds raised as targets | **0** over **934** instances, training video | 8 bird tracks | 🟢 |
 | Clutter tracks raised | **11** (07_05) · **4** (10_06) | 2 videos | ⚠️ |
 | EDGE-RT speed | **58.9 fps** @1280, AP 0.876 | 361 frames, RTX 4090 | 🟢 |
 | One-camera pursuit | **54 / 62** | 62 engagements | 🟡 |

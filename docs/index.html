@@ -240,13 +240,13 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
 
   <div class="stats">
     <div class="stat">
-      <div class="v">1.000</div><div class="k">AP and F1, detection</div>
-      <div class="n">On a real video never trained on and never used to pick a model. Zero false positives.</div>
+      <div class="v">0.809</div><div class="k">AP, ARD-MAV official split</div>
+      <div class="n">15 held-out videos, 3 seeds, IoU 0.5 &#8212; the benchmark&#8217;s own protocol. A competitor retrained from its own code scores 0.834 under the same evaluator.</div>
       <div class="prov"><i style="background:var(--real)"></i>real video</div>
     </div>
     <div class="stat">
-      <div class="v">0.06 → 0.83</div><div class="k">mAP50, one change</div>
-      <div class="n">Same network, same recipe: single-frame input against a 3-moment temporal stack.</div>
+      <div class="v">0.159 → 0.895</div><div class="k">AP, one frame vs three moments</div>
+      <div class="n">Same network and settings, one real video. Only the temporal arm also trained on pasted instances &#8212; a confound the README names.</div>
       <div class="prov"><i style="background:var(--real)"></i>real video</div>
     </div>
     <div class="stat">
@@ -278,8 +278,8 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
   <figure>
     <img src="media/temporal_input.jpg" alt="Left: a single video frame in which the drone cannot be seen. Right: three grayscale moments stacked as R/G/B, in which the drone appears as three coloured blips.">
     <figcaption>
-      Same spot, same moment, unseen video. <b>Left:</b> find the drone. You can't — nor can any
-      single-frame detector, at any confidence. <b>Right:</b> the detector's actual input.
+      Same spot, same moment. <b>Left:</b> find the drone. You mostly can't, and neither can a
+      single-frame detector &#8212; the controlled one scores AP 0.159. <b>Right:</b> the detector's actual input.
       Stabilise the video, then stack three grayscale moments as the R/G/B channels of one image:
       everything static cancels to grey, and anything that moved leaves coloured blips — one per
       moment in time. <b>Yellow</b> = where the drone was 12 frames ago, <b>magenta</b> = 6 ago,
@@ -288,9 +288,9 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
   </figure>
 
   <div class="pull">
-    On identical held-out instances with an identical training recipe: <b>single-frame input
-    scores mAP50 0.06, the temporal stack scores 0.83.</b> The representation is the
-    breakthrough, not the network.
+    Same network, same settings, same video: <b>single-frame input scores AP 0.159, the
+    temporal stack scores 0.895.</b> Only the temporal arm also trained on pasted instances,
+    so the gap is the representation together with that augmentation.
   </div>
 
   <p class="small">
@@ -367,21 +367,22 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
 
   <h3><span class="chip real" style="vertical-align:middle;margin-right:8px"><span class="dot"></span>Real video</span> Detection</h3>
   <p>
-    Both shipped models are scored on <code>10_06.mp4</code> — a video never trained on and never
-    used for model selection. Matching is by <b>centre distance</b> (&tau; = 12&nbsp;px), because
-    IoU is meaningless on a 4-pixel box.
+    Both shipped models are scored on <code>10_06.mp4</code> — never trained on, but six
+    track-classifier constants were tuned against it, so it is a development video rather than an
+    unseen one. Matching is by <b>centre distance</b> (&tau; = 12&nbsp;px), because IoU is
+    meaningless on a 4-pixel box.
   </p>
 
   <div class="tw"><table>
     <thead><tr>
       <th>model</th><th>what it is</th><th class="n">07_05 val (hardest)</th>
-      <th class="n">10_06 test (unseen)</th><th class="n">fps</th>
+      <th class="n">10_06 (development)</th><th class="n">fps</th>
     </tr></thead>
     <tbody>
       <tr><td><b>PC-MAX</b></td><td>3-stream fusion + tracker + track classifier</td>
           <td class="n">0.995 / 0.995</td><td class="n"><b>1.000 / 1.000</b></td><td class="n">4</td></tr>
       <tr><td><b>EDGE-RT</b></td><td>one YOLOv8-nano on the temporal stack, TensorRT FP16</td>
-          <td class="n">0.995 / 0.995</td><td class="n"><b>1.000 / 1.000</b></td><td class="n"><b>74</b></td></tr>
+          <td class="n">0.995 / 0.995</td><td class="n"><b>1.000 / 1.000</b></td><td class="n"><b>58.9</b></td></tr>
     </tbody>
   </table></div>
   <p class="small">
@@ -390,8 +391,11 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
     surveillance mode allowed to interpolate across gaps using later frames reaches 1.000 across
     the board for both models, and it is reported next to the causal row in
     <a href="https://github.com/NadavCherry/SpeckLock/blob/main/docs/reports/round3-deliverables.md">round 3</a>
-    rather than in the headline. Every labelled frame is hit within 12&nbsp;px with <b>zero false
-    positives</b>; PC-MAX misses at most 1 labelled frame in 885. fps measured on an RTX 5070.
+    rather than in the headline. Every labelled frame is hit within 12&nbsp;px, and the score is
+    1.000 because AP is score-weighted per frame &#8212; <b>at the track, PC-MAX raises four sustained
+    false drone tracks on 10_06</b> (README &sect;7), so this is not a zero-false-alarm result.
+    PC-MAX misses at most 1 labelled frame in 885. PC-MAX fps is from an RTX 5070 laptop; EDGE-RT
+    was re-measured on an RTX 4090 with a rebuilt engine (the earlier 74&nbsp;fps was not reproduced).
     <b>The honest scope of that 1.000:</b> it is one location, one drone, two videos. The
     generalisation work is separate and scored separately — see below.
   </p>
@@ -399,7 +403,7 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
   <h3>Against a strong conventional baseline</h3>
   <p>
     A YOLO26n trained on a real multi-scene drone dataset (imgsz 1760, 300 epochs), on the same
-    unseen video:
+    video, <code>10_06</code>:
   </p>
   <figure>
     <img src="media/baseline_vs_specklock.gif" alt="Side-by-side: the baseline single-frame detector finds nothing over ground clutter, while the temporal pipeline holds a continuous track.">
@@ -477,20 +481,20 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
       <!-- "0.84 ARD-MAV ... held-out" was the claim the leak banner above voids: the ARD-MAV
            figure came from a split that was not held out. 0.809 is the official-split
            recomputation. NPS was never affected. -->
-      <tr><td><b>this generalist</b></td><td><b>all sets at once</b></td><td class="n">&mdash;</td>
-          <td><b>0.809 ARD-MAV · 0.81 NPS · black drone tracked 1.000</b> — same weights;
-          ARD-MAV on its official 15-video test list, NPS whole-video held-out</td></tr>
+      <tr><td><b>this project</b></td><td>per dataset</td><td class="n">0.809 ARD-MAV · 0.487 NPS</td>
+          <td>separate weights per set, like YOLOMG &#8212; which, retrained by us on the same
+          splits and scored by the same evaluator, gets 0.834 / 0.527</td></tr>
     </tbody>
   </table></div>
   <p class="small">
-    Published numbers are AP@0.5 IoU on each paper's own split; ours are centre-distance AP
-    (&tau; = 12&nbsp;px) on whole-video held-out splits — IoU is unstable on a 6&nbsp;px box, so
-    read this as a <em>class</em> comparison, not a leaderboard entry. The claim is not that any
-    specialist is beaten at home; it is that <b>no published method holds specialist-class accuracy
-    across several tiny-drone datasets with one set of weights</b> — and this one is real-time
-    with it: <b>74&nbsp;fps</b> for the shipped edge model (TensorRT FP16), <b>107&ndash;122&nbsp;fps</b>
-    for the generalist edge pipeline on a moving camera, against a published range of ~1&nbsp;fps
-    (Dogfight) to 147 (GLAD).
+    Published numbers are AP@0.5 IoU on each paper's own split. Ours on ARD-MAV and NPS are AP@0.5
+    IoU too, on held-out splits &#8212; ARD-MAV on its official list, NPS video-disjoint rather than
+    the published split, and which videos are held out is the largest single term in the NPS
+    discrepancy. Read this as a <em>class</em> comparison, not a leaderboard entry. Against that
+    retrained competitor YOLOMG leads on point estimates on both benchmarks; under a
+    Holm-corrected paired test the overall difference is significant on no seed. Speed:
+    <b>58.9&nbsp;fps</b> at 1280&nbsp;px for the edge model on an RTX 4090 (TensorRT FP16, measured
+    in the same pass as its accuracy), against a published range of ~1&nbsp;fps (Dogfight) to 147 (GLAD).
   </p>
 
   <!-- ---------------- interception ---------------- -->
