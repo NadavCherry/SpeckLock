@@ -1,5 +1,7 @@
 # Round 6 — The unified MAX pipeline (combine everything) + v1-vs-v2
 
+> ⚠️ **Every ARD-MAV number in this report is void.** `combined_splits()` ignored ARD-MAV's official split and re-split by position, so most of the 15 official test videos were in training ([INFRA.md](../research/INFRA.md) section 7, item 1). NPS and local-video numbers are not affected by that bug. The official-split recomputation is 0.809 ([README](../../README.md) section 5).
+
 **Goal (user's framing):** stop *competing* with SOTA and instead *combine* every capability
 that helps — multi-scale detection, ego-motion, temporal cues, ensembling, and especially
 **tracking** (this is video) — into one maximum-performance PC pipeline, and compare a

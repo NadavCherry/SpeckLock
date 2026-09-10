@@ -2,6 +2,10 @@
      Findings marked UNVERIFIED were not independently confirmed and must be checked
      before they are acted on or repeated. -->
 
+> **Snapshot of commit `dcfd2c6` (2026-08-26).** Line numbers and counts below refer to that
+> commit, and many of these findings have since been fixed — [final-audit.md](final-audit.md)
+> is the current state.
+
 I have enough verified ground. Returning the consolidated inventory.
 
 ---

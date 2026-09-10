@@ -1,5 +1,7 @@
 # Round 7 — Learning from the NPS SOTA: one RGB+motion model for *all* datasets
 
+> ⚠️ **Every ARD-MAV number in this report is void.** `combined_splits()` ignored ARD-MAV's official split and re-split by position, so most of the 15 official test videos were in training ([INFRA.md](../research/INFRA.md) section 7, item 1). NPS and local-video numbers are not affected by that bug. The official-split recomputation is 0.809 ([README](../../README.md) section 5).
+
 **Goal (user's framing):** not to *beat* the NPS leaders (Dogfight, TransVisDrone) on their home
 turf, but to **study their architecture / training / preprocessing and fold what helps into our
 one generalist model** — so a *single* model is strong on *every* dataset (ARD-MAV, NPS, and the

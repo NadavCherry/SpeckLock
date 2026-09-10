@@ -1,5 +1,7 @@
 # Round 5 — Moving camera, many datasets, any colour, any scale
 
+> ⚠️ **Every ARD-MAV number in this report is void.** `combined_splits()` ignored ARD-MAV's official split and re-split by position, so most of the 15 official test videos were in training ([INFRA.md](../research/INFRA.md) section 7, item 1). NPS and local-video numbers are not affected by that bug. The official-split recomputation is 0.809 ([README](../../README.md) section 5).
+
 **The problem got harder.** The new public data (ARD-MAV, NPS) is shot from a *flying*
 camera, not the near-static rig of our own videos; the drones are a **different colour**
 (white/varied vs. our black one) and a **different scale** (near/far). Goal: adapt the

@@ -120,8 +120,10 @@ Full analysis, both bin sets, and the paired tests: [size curve](docs/reports/si
 ## 5 · Against the state of the art
 
 🟢 **demonstrated.** The competitor is **YOLOMG** ([arXiv:2503.07115](https://arxiv.org/abs/2503.07115)),
-**trained by us** from its own code on its own published recipe — 100 epochs at 1280 px against our
-30 at 640, roughly twice our gradient steps — then scored on our splits by our evaluator. That makes
+**trained by us** from its own code on its own published recipe — 100 epochs at 1280 px — then
+scored on our splits by our evaluator. The "ours" column below is our own 100-epoch arm, so the epoch
+budgets match; the resolution does not (their 1280 px frames, our 640 px tiles). Our 30-epoch arms
+are in [SUMMARY](work/reports/SUMMARY.md). That makes
 it a *paired* measurement rather than a published scalar taken on trust.
 
 | benchmark | ours | YOLOMG | who leads |

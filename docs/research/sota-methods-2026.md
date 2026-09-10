@@ -1,5 +1,10 @@
 # SpeckLock — Methods Briefing
 
+> ⚠️ **Superseded as a scorecard.** Where this briefing says where SpeckLock stands, it predates
+> three corrections and must not be quoted: ARD-MAV numbers from rounds 5–7 are void (their split
+> leaked — [INFRA.md](INFRA.md)), "24/24" was a perfect-sensor run, and its test count is stale.
+> The README's results table is the authority. The survey of other methods stands.
+
 **Scope.** The strongest published methods for detecting a 3–14 px drone, what the field currently
 believes are the winning ingredients, where SpeckLock stands against them, and how to hybridise.
 
