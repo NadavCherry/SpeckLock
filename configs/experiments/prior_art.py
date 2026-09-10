@@ -123,8 +123,9 @@ TYOLOV8_NPS = ExperimentConfig(
 #: (cluster/local_finetune.sbatch): initialised from ITS OWN NPS-trained checkpoint -- the job
 #: passes --weights work/runs_tyolov8/tyolov8_nps-s<seed>/weights/best.pt -- exactly as ours
 #: and YOLOMG start from theirs, so no arm borrows another's prior. The 60 epochs, tiling and
-#: labels are the paired local arms' (configs/experiments/local_video.py); network, window,
-#: stabiliser (none) and optimizer are the paper's, as in the benchmark arms above.
+#: labels are the paired local arms' (configs/experiments/local_video.py); network, window and
+#: stabiliser (none) are the paper's, and the optimizer is the benchmark arms' Adam at 1e-3 --
+#: the interpretation the module docstring states, not a value the paper prints.
 TYOLOV8_LOCAL_AB = ExperimentConfig(
     name="tyolov8_local_ab",
     datasets=("local:07_05",),
