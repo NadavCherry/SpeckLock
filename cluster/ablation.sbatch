@@ -23,19 +23,14 @@ echo "JOB $SLURM_JOB_ID on $(hostname)"
 rc=$?
 echo "ablation_temporal exit=$rc"
 [ $rc -eq 0 ] || exit $rc
-### Prose and column labels may change; no number may. Every numeral in the regenerated report
-### must equal, in order, every numeral in the committed one.
-python - <<'PY' || { echo "*** A NUMBER CHANGED -- this is not a prose-only regeneration"; exit 1; }
-import re, subprocess
-new = open("work/ablation/REPORT.md", encoding="utf-8").read()
-old = subprocess.run(["git", "show", "HEAD:work/ablation/REPORT.md"], capture_output=True,
-                     text=True, check=True).stdout
-### Digits glued to letters are words, not numbers: "F1", "1a", "1b". The first version of
-### this check counted them, and failed a correct regeneration whose new footnote says
-### "best-F1" (job 21172331: 91 numerals before, 92 after -- the extra one was the F1).
-num = lambda t: re.findall(r"(?<![A-Za-z])\d+(?:\.\d+)?(?![A-Za-z])", t)
-assert num(new) == num(old), f"{len(num(old))} numerals before, {len(num(new))} after"
-print(f"VERIFIED: all {len(num(new))} numerals identical to HEAD -- prose-only regeneration")
-PY
+### A regeneration may add columns or prose; it may not move a cell in a column the committed
+### report already has. tools/report_diff.py checks exactly that, and names any cell that moved.
+### (Its predecessor compared every numeral in order: right for a prose-only regeneration,
+### wrong the moment a column is added on purpose -- and it had already failed one correct
+### report, job 21172331, by counting the "1" in "best-F1".)
+git show HEAD:work/ablation/REPORT.md > "report_head.$$.md" || exit 1
+python tools/report_diff.py "report_head.$$.md" work/ablation/REPORT.md
+rc=$?; rm -f "report_head.$$.md"
+[ $rc -eq 0 ] || { echo "*** A SHARED CELL CHANGED -- not a column-additive regeneration"; exit 1; }
 git diff --stat -- work/ablation/REPORT.md
 echo "=== RESULT ==="

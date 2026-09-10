@@ -105,12 +105,17 @@ def _score_rows(gt, rows, block: int, resamples: int, lines: list) -> bool:
         p = REPO / rel
         if not p.exists():
             _missing(p, how)
-            lines.append(f"| {label} | — | — | — | — | *artifact missing* |")
+            lines.append(f"| {label} | — | — | — | — | — | — | *artifact missing* |")
             continue
         any_row = True
         ds = DetectionSet.load(p)
         ev = M.evaluate(gt, ds, rule="centre", tau=12.0)
         s = M.summarise(ev, M.pick_threshold(ev))
+        # Every detection the model emits, not only those above the best-F1 threshold: the
+        # most it can ever find, and the precision that costs. The README once said a
+        # single-frame detector could not see this drone "at any confidence"; this column
+        # is the measurement that replaced the sentence.
+        s_all = M.summarise(ev, 0.0)
         lo, hi = M.bootstrap_ci(ev, block=block, n_resamples=resamples)
         n = sum(len(v) for v in ds.frames.values())
         ci = f"[{lo:.3f}, {hi:.3f}]"
@@ -120,7 +125,7 @@ def _score_rows(gt, rows, block: int, resamples: int, lines: list) -> bool:
         if hi - lo < 1e-9:
             ci += " ⚠️"
         lines.append(f"| {label} | **{s.ap:.3f}** | {ci} | {s.recall:.3f} "
-                     f"| {s.precision:.3f} | {n} |")
+                     f"| {s.precision:.3f} | {s_all.recall:.3f} | {s_all.precision:.3f} | {n} |")
     return any_row
 
 
@@ -139,13 +144,18 @@ def experiment_single_vs_temporal(gt_path: Path, block: int, resamples: int) -> 
         "the representation together with that augmentation. This is the ablation; 1b "
         "below is not.",
         "",
-        "| input representation | AP | 95% CI | recall† | precision† | detections |",
-        "|---|---|---|---|---|---|",
+        "| input representation | AP | 95% CI | recall† | precision† "
+        "| recall, every detection‡ | precision, every detection‡ | detections |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     ok_a = _score_rows(gt, SINGLE_VS_TEMPORAL, block, resamples, lines)
     lines += ["", "† Everywhere in this report, recall and precision sit at the best-F1 threshold "
               "swept on the same video -- an oracle operating point, which `dronedet/metrics.py` "
-              "says in writing is not an achievable one. AP is threshold-free."]
+              "says in writing is not an achievable one. AP is threshold-free.",
+              "",
+              "‡ Counting every detection the model emits: the most it can ever find, and the "
+              "precision that costs. Each labelled frame of `10_06` holds one drone, so this "
+              "recall is the share of labelled frames in which the drone is found at all."]
 
     lines += [
         "",
@@ -157,8 +167,9 @@ def experiment_single_vs_temporal(gt_path: Path, block: int, resamples: int) -> 
         "finds this target at all — and it is reported separately for that reason. This "
         "pair was previously published as though it were 1a.",
         "",
-        "| system | AP | 95% CI | recall† | precision† | detections |",
-        "|---|---|---|---|---|---|",
+        "| system | AP | 95% CI | recall† | precision† "
+        "| recall, every detection‡ | precision, every detection‡ | detections |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     ok_b = _score_rows(gt, OFF_THE_SHELF, block, resamples, lines)
 
