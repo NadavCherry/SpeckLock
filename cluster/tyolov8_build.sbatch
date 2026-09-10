@@ -26,23 +26,39 @@ python -m pytest -q --no-header -x dronedet/tests/test_centred_taps.py 2>&1 | ta
 python -c "import os, sys; s = os.path.getsize('yolov8m.pt'); print('yolov8m.pt:', s, 'bytes'); sys.exit(0 if s > 40e6 else 1)" \
     || { echo "*** yolov8m.pt missing or truncated ***"; exit 1; }
 
-### 2. The paper's window is half a second, which is 15 frames only at ~30 fps. Refuse to build
-###    from videos that are not, rather than silently changing what "15" means.
+### 2. The paper samples "around 15 frames" either side at 30 fps: about half a second. Record
+###    every video's rate -- test clips too, since inference uses the same window -- and refuse
+###    a rate at which 15 frames would stop meaning roughly that: outside 27-33 fps (+/-10 %).
+###    This check first read 29-31 and stopped the first build (job 21175147): NPS has clips at
+###    28.0 fps, where 15 frames is 0.536 s. That is inside the paper's "around", so the
+###    tolerance was widened and every rate is printed, rather than the window varied per clip.
+###    The paired SpeckLock arm also uses one fixed frame offset (6) on every clip.
+###    A video that cannot be found fails the check; it used to be skipped.
 python - <<'PY' || { echo "*** frame-rate check failed -- not building ***"; exit 1; }
-import importlib.util, sys
+import collections, importlib.util, sys
 import cv2
 spec = importlib.util.spec_from_file_location("mde", "tools/make_dataset_external.py")
 M = importlib.util.module_from_spec(spec); sys.modules["mde"] = M; spec.loader.exec_module(M)
 bad = []
-for name, paths in (("ardmav", [M.ARD_ROOT / "videos" / f"{v}.mp4" for v in M._ard_all()]),
-                    ("nps", [M._nps_video(c) for c in list(M.NPS_TRAIN) + list(M.NPS_VAL)])):
-    fps = []
-    for p in paths:
-        if p is None:
+for name, ids, find in (("ardmav", M._ard_all(), lambda v: M.ARD_ROOT / "videos" / f"{v}.mp4"),
+                        ("nps", [*M.NPS_TRAIN, *M.NPS_VAL, *M.NPS_TEST], M._nps_video)):
+    fps, missing = {}, []
+    for v in ids:
+        p = find(v)
+        if p is None or not p.exists():
+            missing.append(v)
             continue
-        c = cv2.VideoCapture(str(p)); fps.append(round(c.get(cv2.CAP_PROP_FPS), 2)); c.release()
-    print(f"  {name}: {len(fps)} videos, fps {min(fps)} .. {max(fps)}")
-    if min(fps) < 29.0 or max(fps) > 31.0:
+        c = cv2.VideoCapture(str(p)); fps[v] = round(c.get(cv2.CAP_PROP_FPS), 2); c.release()
+    hist = ", ".join(f"{k} fps x{n}" for k, n in sorted(collections.Counter(fps.values()).items()))
+    print(f"  {name}: {len(fps)} videos ({hist}); 15 frames = "
+          f"{15 / max(fps.values()):.3f} .. {15 / min(fps.values()):.3f} s")
+    below = sorted(v for v, f in fps.items() if f < 29.5)
+    if below:
+        print(f"    below 29.5 fps: {', '.join(f'{v} {fps[v]}' for v in below)}")
+    if missing:
+        print(f"    MISSING: {', '.join(missing)}")
+        bad.append(name)
+    if min(fps.values()) < 27.0 or max(fps.values()) > 33.0:
         bad.append(name)
 sys.exit(1 if bad else 0)
 PY

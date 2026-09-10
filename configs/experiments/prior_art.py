@@ -12,9 +12,12 @@ private dataset cannot be placed beside one measured here.
 
 REPRODUCED, because the paper specifies it
   * Three grayscale frames in the RGB channels, "around 15 frames ... sampled before and after
-    the current frame" at 30 fps: taps t-15, t, t+15. ARD-MAV runs at 29.97 fps and the local
-    videos at 30, so 15 frames is the paper's half second. The window is NON-CAUSAL: it reads
-    half a second of the future, which a deployed interceptor cannot.
+    the current frame" at 30 fps: taps t-15, t, t+15, one fixed frame offset on every clip as
+    the paired SpeckLock arm uses. ARD-MAV runs at 29.77-29.97 fps, NPS's training and
+    validation clips at 28.0-29.97 and the local videos at 30, so 15 frames is 0.50-0.54 s --
+    the paper's "around" half second (cluster/tyolov8_build.sbatch prints every clip's rate).
+    The window is NON-CAUSAL: it reads about half a second of the future, which a deployed
+    interceptor cannot.
   * No camera-motion compensation. Its cameras are stationary, and the paper itself expects the
     method to do worse from a moving platform.
   * YOLOv8m from COCO-pretrained weights, with the standard three-scale head (no P2).

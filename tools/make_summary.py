@@ -44,8 +44,8 @@ from tools.check_scorecard import load_sequences  # noqa: E402
 #: reported as unparsed at the bottom of the page rather than silently dropped -- a table
 #: that quietly omits a run is worse than one that admits it could not read it.
 _PAT = re.compile(
-    r"^(?P<arm>singleframe|temporal|yolomg)[_-](?P<ds>ardmav|nps)"
-    r"(?:_seed(?P<s2>\d+)|(?:-(?P<budget>e100))?-s(?P<s1>\d+))$")
+    r"^(?P<arm>singleframe|temporal|yolomg|tyolov8)[_-](?P<ds>ardmav|nps)"
+    r"(?:_seed(?P<s2>\d+)|(?:-(?P<budget>e100|e70))?-s(?P<s1>\d+))$")
 
 
 def parse_name(name: str):
@@ -160,7 +160,7 @@ def gt_scored_lines(rows) -> list[str]:
         totals = sorted({sum(q.n_gt for q in v["seqs"])
                          for (a2, b2, _s), v in rows.items() if a2 == arm and b2 == budget})
         if totals:
-            shown = "100 ep" if (arm == "yolomg" or budget == "e100") else "30 ep"
+            shown = _budget_label(arm, budget)
             parts.append(f"{label} ({shown}) {' / '.join(f'{t:,}' for t in totals)}")
             every.update(totals)
     if not every:
@@ -169,6 +169,13 @@ def gt_scored_lines(rows) -> list[str]:
         return [f"Every arm is scored on the same {every.pop():,} GT instances.", ""]
     return ["GT instances scored, per arm: " + "; ".join(parts)
             + ". They differ, so they are printed rather than asserted.", ""]
+
+
+def _budget_label(arm: str, budget: str) -> str:
+    """YOLOMG always ran its published 100 epochs; our arms carry the budget in their names."""
+    if arm == "yolomg" or budget == "e100":
+        return "100 ep"
+    return {"e70": "70 ep"}.get(budget, "30 ep")
 
 
 def fmt_seeds(vals):
@@ -184,7 +191,8 @@ ROWS = (("temporal", "e30", "**ours** temporal"),
         ("temporal", "e100", "**ours** temporal"),
         ("singleframe", "e30", "ours single-frame (control)"),
         ("singleframe", "e100", "ours single-frame (control)"),
-        ("yolomg", "e30", "**YOLOMG** (competitor)"))
+        ("yolomg", "e30", "**YOLOMG** (competitor)"),
+        ("tyolov8", "e70", "Temporal-YOLOv8 (prior art, reimplemented)"))
 
 TESTS = (("temporal", "e30", "singleframe", "e30",
           "ours temporal - ours single-frame (30 ep)"),
@@ -192,6 +200,14 @@ TESTS = (("temporal", "e30", "singleframe", "e30",
           "ours temporal - ours single-frame (100 ep)"),
          ("temporal", "e30", "yolomg", "e30", "ours temporal 30 ep - YOLOMG"),
          ("temporal", "e100", "yolomg", "e30", "ours temporal 100 ep - YOLOMG"))
+
+#: A SEPARATE Holm family, declared before any of its scorecards existed. Folding it into
+#: TESTS would enlarge that table's family and quietly change verdicts it had already
+#: published. One question only: a Temporal-YOLOv8-vs-single-frame row was considered and
+#: left out -- it differs in network, head, epochs AND window, so it could not attribute any
+#: difference to the window, and it would have made this family's correction harsher.
+PRIOR_ART_TESTS = (("temporal", "e100", "tyolov8", "e70",
+                    "ours temporal 100 ep - Temporal-YOLOv8 70 ep"),)
 
 
 def main() -> int:
@@ -253,7 +269,7 @@ def main() -> int:
             sd = {s: v["ap"] for (a2, b2, s), v in rows.items()
                   if a2 == arm and b2 == budget}
             if sd:
-                shown = "100 ep" if (arm == "yolomg" or budget == "e100") else "30 ep"
+                shown = _budget_label(arm, budget)
                 L.append(f"| {label} | {shown} | {fmt_seeds(sd)} |")
         L.append("")
         L += gt_scored_lines(rows)
@@ -272,6 +288,26 @@ def main() -> int:
                 if r is not None:
                     table.append((f"{title} | {seed}", f"{title}, seed {seed}", r))
         L += holm_table(table)
+
+        prior = []
+        for a_arm, a_bud, b_arm, b_bud, title in PRIOR_ART_TESTS:
+            for seed in seeds:
+                ka, kb = (a_arm, a_bud, seed), (b_arm, b_bud, seed)
+                if ka not in rows or kb not in rows:
+                    continue
+                r = paired(rows[ka]["seqs"], rows[kb]["seqs"], a.n_resamples, seed)
+                if r is not None:
+                    prior.append((f"{title} | {seed}", f"{title}, seed {seed}", r))
+        if prior:
+            L += ["### Against the closest prior art: Temporal-YOLOv8, reimplemented", "",
+                  "van Leeuwen et al., Sensors 2024: three grayscale frames at t-15, t, t+15, no "
+                  "stabilisation, YOLOv8m, 70 epochs, Adam. configs/experiments/prior_art.py lists "
+                  "what is reproduced and what is not. Its window reads half a second of the "
+                  "future and ours does not. This table is its own Holm family, declared before "
+                  "its scorecards existed, so adding it changed no verdict above.", "",
+                  "| comparison | seed | d AP | 95% CI | p boot | p perm | p perm, Holm | verdict |",
+                  "|---|---|---|---|---|---|---|---|"]
+            L += holm_table(prior)
 
 
         # --- ARD-MAV only: GLAD's own condition grouping. The overall AP hides the
@@ -297,7 +333,7 @@ def main() -> int:
                     if vals:
                         per_cond[cond] = st.fmean(vals)
                 if per_cond:
-                    shown = "100 ep" if (arm == "yolomg" or budget == "e100") else "30 ep"
+                    shown = _budget_label(arm, budget)
                     L.append(f"| {label} ({shown}) | "
                              + " | ".join(f"{per_cond.get(c, float('nan')):.3f}"
                                           for c in ("ordinary", "complex", "small")) + " |")
