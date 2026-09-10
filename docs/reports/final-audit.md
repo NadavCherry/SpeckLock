@@ -132,7 +132,8 @@ The `chart_cpa` case is the worst of them: the sentence is **hard-coded in the g
 - **Competitive standing against a retrained competitor**, scored by one evaluator on our splits:
   ARD-MAV 0.809 vs YOLOMG 0.834; NPS 0.487 vs 0.527.
 - **A size-dependent crossover in the means.** Below 10 px we lead (+0.083 at <8 px, +0.095 at
-  8–10 px); above 16 px YOLOMG leads and *that* side is significant on 3/3 seeds.
+  8–10 px), significant on no seed; above 16 px YOLOMG leads, and after the Holm correction that
+  side is significant on 3/3 seeds at 16–25 px and 2/3 at >25 px (§5).
 - **Track-level rejection of birds**: 0 raised over 934 labelled instances, from 440 detections
   that land on them — on the training video (§2.3).
 - **Speed measured jointly with accuracy**: 58.9 fps at AP 0.876, TensorRT engine @1280 on an
@@ -145,14 +146,15 @@ The `chart_cpa` case is the worst of them: the sentence is **hard-coded in the g
 The direct test of the project's thesis was run, and **`README.md` §6 does not contain it.**
 From `work/reports/SUMMARY.md`, temporal vs. this project's own single-frame control:
 
-| corpus | rows | result |
-|---|---|---|
-| ARD-MAV (both budgets, 3 seeds) | 6 | **6 × "no difference"** |
-| NPS (both budgets, 3 seeds) | 6 | **2 × "worse", 4 × "no difference", 0 × better** |
+| corpus | rows | uncorrected | after Holm (§5) |
+|---|---|---|---|
+| ARD-MAV (both budgets, 3 seeds) | 6 | 6 × "no difference" | **6 × "no difference"** |
+| NPS (both budgets, 3 seeds) | 6 | 2 × "worse", 4 × "no difference" | **6 × "no difference"** |
 
 So: *the representation's advantage is demonstrated on the static-rig corpus; on both
-moving-camera benchmarks the paired tests cannot separate it from a single frame, and on NPS it
-is twice significantly worse.* This is stated correctly at
+moving-camera benchmarks the paired tests cannot separate it from a single frame.* Uncorrected,
+NPS shows it twice significantly worse; neither survives the correction the project's own rule
+requires, so the honest statement is a null, not a reversal. The uncorrected version is stated at
 `docs/reports/round8-sota-campaign.md:155`, and nowhere a reader will meet it — not §6, not §12,
 not the site, not the post.
 
@@ -164,12 +166,13 @@ behind it at all.** ✔ verified independently
 
 `README.md:121` — *"They lead on both public benchmarks, and **their lead is the one that
 reaches significance**."* The overall paired tests say otherwise: **0 of 6 ARD-MAV rows** reach
-significance (p_perm 0.17 / 0.58 / 0.23 at 100 ep), and 1 of 6 on NPS. That sentence is true of
-the **size bins** (16–25 px and >25 px, 3/3 seeds) but sits directly beneath the overall table.
+significance (p_perm 0.17 / 0.58 / 0.23 at 100 ep), 1 of 6 on NPS uncorrected, and **0 of 12**
+once Holm is applied. The sentence is true of the **size bins** (after correction: 16–25 px on
+3/3 seeds, >25 px on 2/3) but sits directly beneath the overall table.
 
 By the project's own both-tests-must-agree rule, overstating a defeat is the same error as
-overstating a win. The correct statement: *they lead on point estimates; the difference does not
-reach significance on ARD-MAV, and does on 1 of 3 NPS seeds.*
+overstating a win. The correct statement: *they lead on point estimates; under the project's own
+Holm-corrected rule the difference reaches significance on no seed of either benchmark.*
 
 ### The matching rule contradicts the stated convention ✔ verified independently
 
@@ -205,12 +208,29 @@ Neither changes the conclusion — video selection dominates by roughly six-fold
 
 ## 5 · Multiple comparisons
 
-`docs/research/INFRA.md:624` states a Holm correction rule for families of hypotheses.
-`tools/make_summary.py` and `tools/size_curve.py:108` never apply it, across families of 15–27
-tests. Applying the repo's own `holm()` reportedly removes all three "worse" verdicts and one
-third of one "significant on all three seeds" claim. **Not independently re-verified** — but it
-is the highest-value single check remaining, because it cuts *toward* the project on the NPS
-"worse" rows and *against* it on a significance claim.
+`docs/research/INFRA.md:619` and `:624` state the rule: *"Holm correction across the whole
+table"*, and a better/worse verdict only when the CI excludes zero *and* the Holm-adjusted
+p < 0.05. `tools/make_summary.py` and `tools/size_curve.py` never apply it. ✔ verified
+independently — the repo's own `dronedet.stats.holm`, applied to the committed p-values, with the
+family taken as the whole table per dataset:
+
+| table | raw significant | survive Holm | what dies |
+|---|---|---|---|
+| `SUMMARY.md` ARD-MAV (12 rows) | 0 | 0 | — |
+| `SUMMARY.md` NPS (12 rows) | 3 | **0** | all three "worse": temporal vs single-frame 30 ep s0 (−0.081) and 100 ep s2 (−0.097); ours vs YOLOMG 100 ep s2 (−0.114) |
+| size curve ARD-MAV (15 rows) | 7 | 5 | 10–16 px s0; **>25 px s1** |
+| size curve NPS (9 rows) | 2 | 1 | 10–16 px s2 |
+
+It cuts both ways. *Toward* the project: NPS's "temporal is worse than a single frame" was a
+family-wise artefact, so the thesis is null on both benchmarks rather than reversed on one.
+*Against* it: README §6's *"clears the same bar on all three seeds at p ≈ 0.001"* holds at
+16–25 px (adjusted p 0.015) but not at >25 px, where seed 1 goes to 0.29 — and seed 1's raw p was
+already 0.032, not ≈ 0.001.
+
+One sensitivity, stated so it is not discovered later: the three `SUMMARY.md` verdicts die on the
+**permutation** side (adjusted p 0.12–0.21) while the bootstrap side stays below 0.01. They fall
+because the project requires both tests to agree — its own stated standard, and the right one —
+but a reader using the bootstrap alone would keep them.
 
 ---
 
@@ -239,10 +259,11 @@ launch checker make every one of them stale. The true count should be generated,
 2. **Regenerate the images and fix the generators** — `make_social_card.py`, `make_result_charts.py`,
    the three architecture SVGs — then `NOTICE.md`, `final/README.md`, `gallery.html`,
    `methods.md`, `index.html:243`.
-3. **Add the null result to README §6 and §12**: temporal vs single-frame is 6 × "no difference"
-   on ARD-MAV and 2 × worse on NPS.
+3. **Add the null result to README §6 and §12**: temporal vs single-frame is "no difference" on
+   every row of both benchmarks once Holm is applied (§5).
 4. **Fix `README.md:121`** to say what the tests say, and **`README.md:32`/`:127`** to say IoU.
-5. **Run the Holm correction** and republish whatever verdicts change.
+5. **Build Holm into `make_summary.py` and `size_curve.py`** and regenerate; §5 lists exactly
+   which verdicts change.
 6. Re-run `tools/check_launch_claims.py`, and extend it — it checks the post's numbers but not
    its *provenance words*, which is where every §2 defect lives.
 
