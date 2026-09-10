@@ -13,11 +13,18 @@ private dataset cannot be placed beside one measured here.
 REPRODUCED, because the paper specifies it
   * Three grayscale frames in the RGB channels, "around 15 frames ... sampled before and after
     the current frame" at 30 fps: taps t-15, t, t+15, one fixed frame offset on every clip as
-    the paired SpeckLock arm uses. ARD-MAV runs at 29.77-29.97 fps, NPS's training and
-    validation clips at 28.0-29.97 and the local videos at 30, so 15 frames is 0.50-0.54 s --
-    the paper's "around" half second (cluster/tyolov8_build.sbatch prints every clip's rate).
-    The window is NON-CAUSAL: it reads about half a second of the future, which a deployed
-    interceptor cannot.
+    the paired SpeckLock arm uses. Every clip either arm trains on runs at 28.0-29.97 fps
+    (ARD-MAV 29.77-29.97, NPS 28.0-29.97; the local videos 30), so there 15 frames is
+    0.50-0.54 s -- the paper's "around" half second. cluster/tyolov8_build.sbatch prints every
+    clip's rate. The window is NON-CAUSAL: it reads about half a second of the future, which a
+    deployed interceptor cannot.
+
+    Two of the ten NPS TEST clips run at 59.9 fps (named in the build log and in
+    tools/make_summary.py). On them 15 frames is 0.25 s, as SpeckLock's 6 frames is 0.10 s:
+    both arms meet half the window they were trained on. Declared before any scorecard of this
+    arm existed: they are scored like every other clip, and SUMMARY.md also prints the NPS
+    difference with those two clips left out -- descriptively, without a verdict, so the
+    Holm family stays the one question it was declared as.
   * No camera-motion compensation. Its cameras are stationary, and the paper itself expects the
     method to do worse from a moving platform.
   * YOLOv8m from COCO-pretrained weights, with the standard three-scale head (no P2).

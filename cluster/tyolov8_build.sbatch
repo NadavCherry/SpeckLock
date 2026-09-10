@@ -26,13 +26,17 @@ python -m pytest -q --no-header -x dronedet/tests/test_centred_taps.py 2>&1 | ta
 python -c "import os, sys; s = os.path.getsize('yolov8m.pt'); print('yolov8m.pt:', s, 'bytes'); sys.exit(0 if s > 40e6 else 1)" \
     || { echo "*** yolov8m.pt missing or truncated ***"; exit 1; }
 
-### 2. The paper samples "around 15 frames" either side at 30 fps: about half a second. Record
-###    every video's rate -- test clips too, since inference uses the same window -- and refuse
-###    a rate at which 15 frames would stop meaning roughly that: outside 27-33 fps (+/-10 %).
-###    This check first read 29-31 and stopped the first build (job 21175147): NPS has clips at
-###    28.0 fps, where 15 frames is 0.536 s. That is inside the paper's "around", so the
-###    tolerance was widened and every rate is printed, rather than the window varied per clip.
-###    The paired SpeckLock arm also uses one fixed frame offset (6) on every clip.
+### 2. The paper samples "around 15 frames" either side at 30 fps: about half a second. Every
+###    video's rate is recorded, and a clip the BUILDER reads (training / validation) outside
+###    27-33 fps (+/-10 %) stops the build, since training on it would change what the window
+###    means. The history, so the tolerance is not mistaken for one chosen after the fact:
+###      - job 21175147, tolerance 29-31, train/val only: stopped by NPS Clip_017 at 28.0 fps,
+###        where 15 frames is 0.536 s -- inside the paper's "around". Widened to 27-33.
+###      - job 21175224, test clips added: stopped by two NPS TEST clips at 59.9 fps, where 15
+###        frames is 0.25 s. The builder never reads a test clip, so they cannot change what
+###        the arm is trained on; they are named below and scored as the paired SpeckLock arm
+###        already is on them, with fixed frame offsets (its 6 frames are 0.10 s there). How
+###        they are reported is declared in configs/experiments/prior_art.py.
 ###    A video that cannot be found fails the check; it used to be skipped.
 python - <<'PY' || { echo "*** frame-rate check failed -- not building ***"; exit 1; }
 import collections, importlib.util, sys
@@ -40,8 +44,9 @@ import cv2
 spec = importlib.util.spec_from_file_location("mde", "tools/make_dataset_external.py")
 M = importlib.util.module_from_spec(spec); sys.modules["mde"] = M; spec.loader.exec_module(M)
 bad = []
-for name, ids, find in (("ardmav", M._ard_all(), lambda v: M.ARD_ROOT / "videos" / f"{v}.mp4"),
-                        ("nps", [*M.NPS_TRAIN, *M.NPS_VAL, *M.NPS_TEST], M._nps_video)):
+for name, ids, find, test in (
+        ("ardmav", M._ard_all(), lambda v: M.ARD_ROOT / "videos" / f"{v}.mp4", set(M.ARD_TEST_IDS)),
+        ("nps", [*M.NPS_TRAIN, *M.NPS_VAL, *M.NPS_TEST], M._nps_video, set(M.NPS_TEST))):
     fps, missing = {}, []
     for v in ids:
         p = find(v)
@@ -52,13 +57,16 @@ for name, ids, find in (("ardmav", M._ard_all(), lambda v: M.ARD_ROOT / "videos"
     hist = ", ".join(f"{k} fps x{n}" for k, n in sorted(collections.Counter(fps.values()).items()))
     print(f"  {name}: {len(fps)} videos ({hist}); 15 frames = "
           f"{15 / max(fps.values()):.3f} .. {15 / min(fps.values()):.3f} s")
-    below = sorted(v for v, f in fps.items() if f < 29.5)
-    if below:
-        print(f"    below 29.5 fps: {', '.join(f'{v} {fps[v]}' for v in below)}")
+    odd = sorted(v for v, f in fps.items() if not 29.5 <= f <= 30.5)
+    if odd:
+        print("    outside 29.5-30.5 fps: "
+              + ", ".join(f"{v} {fps[v]}{' (TEST)' if v in test else ''}" for v in odd))
     if missing:
         print(f"    MISSING: {', '.join(missing)}")
         bad.append(name)
-    if min(fps.values()) < 27.0 or max(fps.values()) > 33.0:
+    built = [f for v, f in fps.items() if v not in test]
+    print(f"    clips the builder reads: {len(built)}, fps {min(built)} .. {max(built)}")
+    if min(built) < 27.0 or max(built) > 33.0:
         bad.append(name)
 sys.exit(1 if bad else 0)
 PY
