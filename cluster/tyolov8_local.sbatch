@@ -4,10 +4,11 @@
 #SBATCH --job-name sl_tylocal
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tylocal-%A_%a.out
 #SBATCH --gpus=rtx_4090:1
-#SBATCH --mem=12G
+#SBATCH --mem=10000M
 #SBATCH --array=0-2
-### --mem ABOVE IS NOT THE REQUEST: the submit command passes the pilot's measured cgroup peak
-### plus ~20 %, as for the training array, and says which number it used.
+### 10000M, as the training array: the same trainer, network, batch and four loader workers, whose
+### whole-job peak the pilot measured at 8,362 MiB (job 21175865), plus ~20 %. This job's own
+### cgroup peak is printed below.
 ###
 ### Temporal-YOLOv8 on the project's own task. Fine-tune from ITS OWN NPS checkpoint, exactly as
 ### cluster/local_finetune.sbatch does for ours and YOLOMG, then detect on the held-out 10_06

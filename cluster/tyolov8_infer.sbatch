@@ -4,14 +4,15 @@
 #SBATCH --job-name sl_tyinfer
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tyinfer-%A_%a.out
 #SBATCH --gpus=rtx_4090:1
-#SBATCH --mem=6G
+#SBATCH --mem=6000M
 #SBATCH --array=0-5
 ### INFERENCE ONLY. Scoring (tools/evaluate.py, tools/check_scorecard.py) is CPU work and runs
 ### afterwards in cluster/tyolov8_score.sbatch, so no GPU sits idle through it.
 ###
-### --mem ABOVE IS AN ESTIMATE, replaced at submission by the pilot's single-process peak
-### (/usr/bin/time, which for one process is exact) plus ~20 %. This step's own peak is
-### recorded below, so the number can be checked against what inference actually used.
+### 6000M: the pilot's largest single process (job 21175865, /usr/bin/time) peaked at 4,930 MiB
+### -- the trainer's main process, holding the same network and CUDA context inference needs --
+### plus ~20 %. Inference is one process, so /usr/bin/time below measures it exactly, and the
+### next edit of this line comes from that.
 ###
 ### Flags: exactly those cluster/eval_e100.sbatch scored the paired arm with (--conf 0.001,
 ### --batch 1, default tile / overlap / merge distance / max-det), plus this arm's window:

@@ -1,16 +1,19 @@
 #!/bin/bash
 #SBATCH --partition main
-#SBATCH --time 1-12:00:00
+#SBATCH --time 0-10:00:00
 #SBATCH --job-name sl_tytrain
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tytrain-%A_%a.out
 #SBATCH --gpus=rtx_4090:1
-#SBATCH --mem=12G
+#SBATCH --mem=10000M
 #SBATCH --array=0-5
-### --mem ABOVE IS NOT THE REQUEST. It is the pilot's own estimate; the submit command passes
-### --mem from the pilot's measured cgroup peak (cluster/tyolov8_pilot.sbatch) plus ~20 %, and
-### says which number it used. The array throttle (%N) is likewise set at submission from
-### cluster/gpu_budget.sh, because the limit of 7 GPUs is shared with every other job this
-### account runs.
+### 10000M, measured: the pilot (job 21175865) training this arm on NPS at batch 8 peaked at
+### 8,362 MiB for the whole job -- the cgroup's figure, which counts the four data-loader workers
+### that /usr/bin/time cannot see (its single-process peak was 4,930 MiB). Plus ~20 %. No image
+### cache is used (tools/train.py passes none), so ARD-MAV's larger training set adds label
+### arrays, not images. GPU memory peaked at 4,456 MiB (nvidia-smi, CUDA context included).
+### 10 h: the pilot's NPS epochs took ~130 s with validation, so ARD-MAV's 70 (1.9x the tiles)
+### are ~4.8 h; about twice that. The array throttle (%N) is set at submission from
+### cluster/gpu_budget.sh, because the limit of 7 GPUs is shared with every job this account runs.
 ###
 ### Temporal-YOLOv8, reimplemented (configs/experiments/prior_art.py): 70 epochs, seeds 0-2 on
 ### each benchmark, into work/runs_tyolov8/ -- a root of its own, so no other arm's run can be
