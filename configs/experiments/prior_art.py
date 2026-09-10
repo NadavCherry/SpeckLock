@@ -1,43 +1,63 @@
 """Temporal-YOLOv8, reimplemented from its paper as a paired comparison arm.
 
 van Leeuwen, Fokkinga, Huizinga, Baan and Heslinga (TNO), "Toward Versatile Small Object
-Detection with Temporal-YOLOv8", Sensors 24(22):7387, 2024.
+Detection with Temporal-YOLOv8", Sensors 24(22):7387, 2024, doi:10.3390/s24227387.
 
-It is the closest published relative of this project's core idea -- three moments of video in
-the three input channels of a stock YOLOv8 -- and it was published two years earlier. Neither
-code nor weights are released and its Nano-VID dataset is proprietary, so this is a
-reimplementation of what the paper specifies, trained on this repository's splits and scored by
-its evaluator: the way YOLOMG is compared, and for the same reason. A number measured on a
-private dataset cannot be placed beside one measured here.
+It is the closest published relative of this project's core idea -- grayscale frames from three
+moments in the three input channels of a stock YOLOv8 -- and it was published two years earlier.
+The paper links no code or weights, and every number it reports is measured on Nano-VID, its
+in-house dataset; two public datasets, VIRAT-Ground and VisDrone-VID, appear only as extra
+training data. So this is a reimplementation, trained on this repository's splits and scored by
+its evaluator -- the way YOLOMG is compared, and for the same reason: a number measured on
+another dataset cannot be placed beside one measured here.
 
-REPRODUCED, because the paper specifies it
-  * Three grayscale frames in the RGB channels, "around 15 frames ... sampled before and after
-    the current frame" at 30 fps: taps t-15, t, t+15, one fixed frame offset on every clip as
-    the paired SpeckLock arm uses. Every clip either arm trains on runs at 28.0-29.97 fps
-    (ARD-MAV 29.77-29.97, NPS 28.0-29.97; the local videos 30), so there 15 frames is
-    0.50-0.54 s -- the paper's "around" half second. cluster/tyolov8_build.sbatch prints every
-    clip's rate. The window is NON-CAUSAL: it reads about half a second of the future, which a
-    deployed interceptor cannot.
+Every statement below about the paper was checked against its full text (Europe PMC,
+PMC11598073) on 2026-09-10, and the quotations are the paper's own.
 
-    Two of the ten NPS TEST clips run at 59.9 fps (named in the build log and in
-    tools/make_summary.py). On them 15 frames is 0.25 s, as SpeckLock's 6 frames is 0.10 s:
-    both arms meet half the window they were trained on. Declared before any scorecard of this
-    arm existed: they are scored like every other clip, and SUMMARY.md also prints the NPS
-    difference with those two clips left out -- descriptively, without a verdict, so the
-    Holm family stays the one question it was declared as.
-  * No camera-motion compensation. Its cameras are stationary, and the paper itself expects the
-    method to do worse from a moving platform.
-  * YOLOv8m from COCO-pretrained weights, with the standard three-scale head (no P2).
-  * 70 epochs with the "default Adam optimizer": Adam at its default learning rate, 1e-3.
+SPECIFIED BY THE PAPER, AND REPRODUCED
+  * The window: "Assuming a 30-frames-per-second (FPS) source video, around 15 frames are
+    sampled before and after the current frame" -- taps t-15, t, t+15, grayscale, in the three
+    channels, one fixed frame offset on every clip, as the paired SpeckLock arm uses. Every clip
+    either arm trains on runs at 28.0-29.97 fps (ARD-MAV 29.77-29.97, NPS 28.0-29.97; the local
+    videos 30), so there 15 frames is 0.50-0.54 s. The window is NON-CAUSAL: it reads about
+    half a second of the future, which a deployed interceptor cannot.
+  * No camera-motion compensation. Its videos are "only stationary-recorded", and the paper
+    expects that from moving platforms "the current setup for temporal YOLO will probably not
+    perform as well".
+  * "Pretrained weights from the m variant of the YOLOv8 model": here Ultralytics' released
+    yolov8m.pt, the public YOLOv8m weights (trained on COCO), with the standard 3-scale head.
+  * 70 epochs under Ultralytics' learning-rate schedule.
 
-MATCHED TO THE PAIRED SPECKLOCK ARM -- because the paper does not specify it, or this pipeline
-cannot reproduce it -- and held equal so it is not a second variable
-  * 640 px tiles, the same stride, the same labels (min_side 0: true extents).
-  * Augmentation NO_PHOTOMETRIC_AUG. The paper's CLAHE (p = 0.1), 10 % scale jitter and
-    "balanced mosaicking" of 420 / 750 / 1920 px crops are NOT reproduced.
-  * Batch 8 and patience 25; the paper states neither.
-  * Scoring by this repository's protocol for each dataset. The paper's own metric (IoU >= 0.01,
-    several detections per object accepted) is used for neither arm.
+AN INTERPRETATION, NOT A SPECIFICATION
+  * The learning rate. The paper uses "the default Adam optimizer" and cites Kingma and Ba, whose
+    published default step size is 1e-3, but prints no value. Adam at lr0 = 1e-3 is that default,
+    and is the value Ultralytics' own configuration documents for Adam ("SGD=1e-2,
+    Adam/AdamW=1e-3"); Ultralytics' generic lr0 of 0.01 is its SGD value.
+
+NOT REPRODUCED, AND WHY
+  * Its 15-pixel box enlargement ("bounding boxes with a width or height below 15 pixels are
+    scaled" to at least 15), which its own ablation credits with 0.166 mAP -- under its IoU >= 0.01
+    metric. Here both arms are scored at IoU >= 0.5 against true extents, and a 15 px box centred
+    on a target narrower than about 10.6 px cannot reach 0.5 (a 6 px target: 36/225 = 0.16).
+    Enlarged labels would make ARD-MAV's <8 px and 8-10 px bins unwinnable by construction, so
+    both arms train on true extents (min_side 0).
+  * Its "balanced mosaicking" -- crops of 420, 750 and 1920 px, downscaling floored at 10x10 px
+    objects, a box blur before each downscale -- and its CLAHE (p = 0.1) and 10 % scale jitter.
+    Both arms use the paired arm's augmentation: photometric augmentation off, standard mosaic
+    on 640 px tiles at native resolution.
+  * Its metric: IoU >= 0.01, with several detections inside one annotation all counted correct.
+    Both arms are scored by this repository's protocol for each dataset (IoU >= 0.5 on the
+    benchmarks, centre distance on the local videos).
+
+MATCHED TO THE PAIRED SPECKLOCK ARM, because the paper does not specify it
+  * 640 px tiles, the same stride, splits and labels, batch 8, patience 25.
+
+Two of the ten NPS TEST clips run at 59.9 fps (named in the build log and in
+tools/make_summary.py). On them 15 frames is 0.25 s, as SpeckLock's 6 frames is 0.10 s: both
+arms meet half the window they were trained on. Declared before any scorecard of this arm
+existed: they are scored like every other clip, and SUMMARY.md also prints the NPS difference
+with those two clips left out -- descriptively, without a verdict, so the Holm family stays the
+one question it was declared as.
 """
 
 from __future__ import annotations
