@@ -67,10 +67,13 @@ contribution, not the architecture.**
 
 🟢 **demonstrated.** One controlled comparison, on `10_06.mp4`, scored by this repo's evaluator:
 
-| input representation | AP | 95% CI | recall | precision |
+| input representation | AP | 95% CI | recall† | precision† |
 |---|---|---|---|---|
 | single frame, RGB | **0.159** | [0.030, 0.366] | 0.199 | 0.337 |
 | **3-moment temporal stack** | **0.895** | [0.776, 0.976] | 0.840 | 0.946 |
+
+† at the best-F1 threshold swept on this same video — an oracle operating point, which
+`dronedet/metrics.py` says in writing is not an achievable one. AP is threshold-free.
 
 **Same network, same hyperparameters and seed, same 1280 px, same pipeline, same video** — the two
 checkpoints decode to identical training arguments apart from the dataset path. **One confound
@@ -131,7 +134,9 @@ significance is their advantage on large targets (§4, §6). That is the honest 
 comparison, and it is stated first for that reason.
 
 What survives alongside it: below 10 px the ordering reverses (§4), and on the 8 px task — where
-every target is smaller than any bin ARD-MAV can populate — we lead in every populated bin.
+every target is smaller than any bin ARD-MAV can populate — we lead in every populated bin on the
+mean of three seeds. It is one flight, so no paired test applies, and at <8 px (123 instances)
+YOLOMG's best seed beats all three of ours.
 
 > Published numbers are IoU ≥ 0.5 on each paper's own split. Ours on ARD-MAV and NPS are IoU ≥ 0.5
 > too — but NPS is scored on a video-disjoint split rather than the published one, and which
@@ -237,8 +242,9 @@ cannot drift apart. RTX 4090, engine rebuilt for that card.
 ⚠️ **No `.engine` ships** — engines are architecture-specific. Without one the runner silently
 loads the `.pt` at roughly 60 % of the rate.
 
-⚠️ **Halving resolution is a bad trade**: 1.22× the speed for −0.236 AP, with recall collapsing
-0.858 → 0.602. **1280 is the operating point.**
+⚠️ **Halving resolution is a bad trade**: 1.22× the speed for −0.236 AP. AP is threshold-free, so that
+is the finding; recall, 0.858 → 0.602, is each arm's best-F1 point swept on this same video.
+**1280 is the operating point.**
 
 At the fast end the bottleneck is **not the network**: in the 640 engine arm, 8.0 of 13.1 ms/frame
 (61 %) is classical CPU stabilisation and only 5.2 ms is inference. An FPS figure for this model is
@@ -325,7 +331,7 @@ Scorecards: [city](work/pursuit/city/METRICS.md) · [pursuit campaign](work/purs
 | Our 8 px task, fine-tuned | **0.840** vs 0.604 | 1 flight × 3 seeds | 🟢 |
 | Birds raised as targets | **0** over **934** instances, training video | 8 bird tracks | 🟢 |
 | Clutter tracks raised | **11** (07_05) · **4** (10_06) | 2 videos | ⚠️ |
-| EDGE-RT speed | **58.9 fps** @1280, AP 0.876 | 361 frames, RTX 4090 | 🟢 |
+| EDGE-RT speed | **58.9 fps** @1280, AP 0.876 | 341 steady frames timed · 337 boxes scored, RTX 4090 | 🟢 |
 | One-camera pursuit | **54 / 62** | 62 engagements | 🟡 |
 | City defence, real seeker | **0 / 3** | 3 engagements | 🟡 ⚠️ |
 | dt = 6 optimality | **not established** | 27 runs | ⚠️ |

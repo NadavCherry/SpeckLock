@@ -82,7 +82,7 @@ was a bug in the reporting, not a finding: the `>25 px` bin holds 28 instances, 
 score 0.005, and the delta is +0.000. Underpowered bins and sub-0.001 deltas are now excluded
 from the crossover test, and the exclusion is printed rather than silent.
 
-## The 8 px task, where we do win
+## The 8 px task, where we lead in the mean
 
 | bin | n | ours | YOLOMG | ours single-frame |
 |---|---|---|---|---|
@@ -90,8 +90,10 @@ from the crossover test, and the exclusion is printed rather than silent.
 | 8–10 px | 81 | **0.767** | 0.536 | 0.434 |
 | 10–16 px * | 46 | **0.707** | 0.317 | 0.280 |
 
-`*` underpowered. We lead in every bin — but this is **one flight**, so the sequence-level
-paired test does not apply and a sequence bootstrap is degenerate. The interval that belongs
+`*` underpowered. We lead in every bin **in the mean** — but at <8 px YOLOMG's best seed (0.496)
+beats all three of ours (0.493, 0.467, 0.329), and seed-matched it wins one pair of three. This is
+**one flight**, so the sequence-level paired test does not apply and a sequence bootstrap is
+degenerate. The interval that belongs
 here is a moving-block bootstrap *within* the sequence, which
 [Round 8](round8-sota-campaign.md) reports for the overall number.
 

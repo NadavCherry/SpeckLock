@@ -3,7 +3,7 @@
 #SBATCH --time 0-02:30:00
 #SBATCH --job-name sl_scpaired
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/scpaired-%j.out
-#SBATCH --mem=750M
+#SBATCH --mem=880M
 ### Only the size curves that carry a PAIRED table -- the `mission` bins of the datasets
 ### with more than one test sequence -- re-run so their verdicts go through the Holm
 ### correction (docs/research/INFRA.md section 6.1). The aitod bin set and local_ft carry
@@ -12,9 +12,10 @@
 ### Sized from the last measured run, cluster_logs/sizecurve-20894039.out (/usr/bin/time):
 ### nps/mission 40:00 at 608 MB, ardmav/mission 1:23:00 at 525 MB -- but those are the
 ### size_curve STEP, and the job's peak is the suite gate that runs first. Sized from the step
-### alone (650M), an ardmav run was OOM-killed inside the gate (job 21171636); the nps run
-### cleared the same gate at 750M. So both run at 750M, and the gate now runs under
-### /usr/bin/time so its own peak is on record. 2h30 is the longer run plus a margin.
+### alone (650M), an ardmav run was OOM-killed inside the gate (job 21171636). Measured
+### since, under /usr/bin/time: the gate peaks at 743,428 kB (job 21171760), so it cleared
+### 750M by under 1%. 880M is that peak plus ~20%. 2h30 is the longer size_curve run plus
+### a margin.
 ### JobAcctGatherType=(null) here, so the step prints its own peak RSS for next time.
 ###
 ### NO --gpus: this reads detection JSON that already exists and does arithmetic.

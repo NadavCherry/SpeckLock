@@ -29,12 +29,16 @@ RTX 4090. `10_06.mp4` scored against `gt_1006_v2.json`, centre-distance matching
 τ = 12 px. Speed and accuracy come from **the same execution**, so the two axes cannot
 drift apart.
 
-| backend | imgsz | **AP** | recall | precision | **fps (steady p50)** | p50 ms | p95 ms | p99 ms |
+| backend | imgsz | **AP** | recall† | precision† | **fps (steady p50)** | p50 ms | p95 ms | p99 ms |
 |---|---|---|---|---|---|---|---|---|
 | `.pt` | 1280 | **0.8793** | 0.875 | 0.799 | 35.2 | 28.4 | 30.5 | 32.1 |
 | `.pt` | 640 | 0.6464 | 0.605 | 0.891 | 40.2 | 24.9 | 26.8 | 27.6 |
 | **engine** | **1280** | **0.8757** | 0.858 | 0.812 | **58.9** | 17.0 | 18.9 | 19.9 |
 | engine | 640 | 0.6393 | 0.602 | 0.898 | **72.1** | 13.9 | 15.3 | 15.8 |
+
+† at each arm's own best-F1 threshold, swept on this same video — an oracle operating point,
+which `dronedet/metrics.py` says in writing is not an achievable one. AP is threshold-free,
+and it is what the readings below rest on.
 
 Three readings, in order of how much they should change what anyone claims:
 
@@ -46,8 +50,9 @@ is *unreproduced*, and the repository should stop quoting it as if it were a pro
 the shipped model.
 
 **Halving the resolution is a bad trade.** 1280 → 640 with an engine buys **1.22×** speed
-(58.9 → 72.1 fps) and costs **0.236 AP** (0.876 → 0.639). Recall collapses from 0.858 to
-0.602 — the model stops finding the target, and the precision rise to 0.898 is the usual
+(58.9 → 72.1 fps) and costs **0.236 AP** (0.876 → 0.639) — threshold-free, so that is the
+finding. At each arm's own oracle threshold† recall falls from 0.858 to 0.602 — the model stops
+finding the target, and the precision rise to 0.898 is the usual
 consequence of firing less often, not an improvement. If the edge profile is ever deployed,
 **1280 is the operating point** and 640 is a fallback for hardware that cannot hold it.
 

@@ -93,10 +93,10 @@ Verify the card is actually visible:
 .venv/bin/python -m pytest -q
 ```
 
-**Expect `943 collected` in roughly 40 s** — measured 2026-08-26, of which `pursuit/tests`
-contributes 540 and `dronedet/tests` 403. Treat it as a **floor, not an equality**: the branch is
-under active construction and the count only grows. CI enforces floors of 900 total / 540 pursuit /
-380 dronedet, so a *smaller* number means something collapsed — usually a `testpaths` entry pointing
+**Expect `963 collected` in roughly 40 s** locally (~90 s on one cluster CPU core) — measured
+2026-09-10, of which `pursuit/tests` contributes 540 and `dronedet/tests` 423, one of them skipping. Treat it as a **floor, not an equality**: the branch is
+under active construction and the count only grows. CI enforces floors of 940 total / 540 pursuit /
+400 dronedet, so a *smaller* number means something collapsed — usually a `testpaths` entry pointing
 at a directory that is not in the index, a mistake that once kept the build green for weeks while
 collecting nothing.
 
@@ -746,7 +746,7 @@ positives — a chaser translating at 14 m/s has no static background to cancel)
 ```bash
 .venv/bin/python -m pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cu128
 .venv/bin/python -m pip install -e ".[train,test]"
-.venv/bin/python -m pytest -q                                   # expect 943 collected
+.venv/bin/python -m pytest -q                                   # expect 963 collected
 .venv/bin/python tools/fetch_data.py --priority 2               # exit 2 = a human must act
 .venv/bin/python tools/dataset_stats.py --dataset ardmav --per-video
 .venv/bin/python tools/prepare_data.py ardmav --out work/prepared/ardmav --tile 640 --stride 4
