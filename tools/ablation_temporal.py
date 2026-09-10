@@ -16,9 +16,11 @@ repository, and both fail. This script runs the test and prints the table.
 
 **Experiment 1 — what does the temporal stack actually buy?**
 Reported in two parts, because they answer different questions and were once conflated.
-*1a* is the controlled ablation: same network family, same training corpus, same 1280 px,
-same pipeline — the only difference is whether the three input channels carry three moments
-or one frame's RGB. *1b* is a cross-check against an off-the-shelf detector at 1760 px,
+*1a* is the controlled ablation: same network, hyperparameters and seed, same 1280 px, same
+pipeline. The intended difference is whether the three input channels carry three moments or
+one frame's RGB; the temporal arm's training set also carries copy-paste instances the
+single-frame arm's does not (realtime/tools/make_datasets_rt.py pastes only `if temporal:`),
+and the report says so. *1b* is a cross-check against an off-the-shelf detector at 1760 px,
 which differs in architecture, corpus AND resolution and therefore cannot attribute its gap
 to the representation. 1b was previously published as though it were 1a.
 
@@ -48,10 +50,13 @@ from dronedet.gt import GroundTruth  # noqa: E402
 
 #: THE CONTROLLED PAIR: (label, detections, how to produce it if absent).
 #:
-#: Same network family, same training corpus, same 1280 px, same pipeline -- the ONLY
-#: difference is whether the three input channels are three moments or one frame's RGB.
-#: That is what makes this an ablation of the input representation rather than a
-#: comparison of two systems.
+#: Same network, hyperparameters and seed (the two checkpoints' train_args differ only in
+#: the data path), same 1280 px, same pipeline. NOT the same training corpus, as this
+#: comment used to claim: realtime/tools/make_datasets_rt.py applies copy-paste only
+#: `if temporal:`, so the temporal arm also trains on pasted drone and bird instances, and
+#: realtime/README.md credits that augmentation with a large part of the gain. The report
+#: states the confound instead of the old "only difference". The recipe-matched pair
+#: WITHOUT pasting is the 8 px task's (configs/experiments/local_video.py, _LOCAL_AB).
 #:
 #: This replaces a pair that was not controlled: `tools/run_baseline.py` with an external
 #: yolo26n checkpoint against `final/run_final.py --profile edge-rt`. Those differ in
@@ -126,15 +131,21 @@ def experiment_single_vs_temporal(gt_path: Path, block: int, resamples: int) -> 
         "",
         "### 1a. Controlled: the input representation, and nothing else",
         "",
-        "Same network family, same training corpus, same **1280 px**, same pipeline, same "
-        "video, same ground truth. The only difference between these two rows is whether "
-        "the three input channels carry three moments or one frame's RGB. This is the "
-        "ablation; 1b below is not.",
+        "Same network, hyperparameters and seed, same **1280 px**, same pipeline, same "
+        "video, same ground truth. The intended difference between these two rows is whether "
+        "the three input channels carry three moments or one frame's RGB. **One confound "
+        "remains:** only the temporal arm's training set carries copy-paste instances "
+        "(`realtime/tools/make_datasets_rt.py` pastes only `if temporal:`), so the gap is "
+        "the representation together with that augmentation. This is the ablation; 1b "
+        "below is not.",
         "",
-        "| input representation | AP | 95% CI | recall | precision | detections |",
+        "| input representation | AP | 95% CI | recall† | precision† | detections |",
         "|---|---|---|---|---|---|",
     ]
     ok_a = _score_rows(gt, SINGLE_VS_TEMPORAL, block, resamples, lines)
+    lines += ["", "† Everywhere in this report, recall and precision sit at the best-F1 threshold "
+              "swept on the same video -- an oracle operating point, which `dronedet/metrics.py` "
+              "says in writing is not an achievable one. AP is threshold-free."]
 
     lines += [
         "",
@@ -146,7 +157,7 @@ def experiment_single_vs_temporal(gt_path: Path, block: int, resamples: int) -> 
         "finds this target at all — and it is reported separately for that reason. This "
         "pair was previously published as though it were 1a.",
         "",
-        "| system | AP | 95% CI | recall | precision | detections |",
+        "| system | AP | 95% CI | recall† | precision† | detections |",
         "|---|---|---|---|---|---|",
     ]
     ok_b = _score_rows(gt, OFF_THE_SHELF, block, resamples, lines)

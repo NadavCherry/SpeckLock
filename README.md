@@ -90,7 +90,9 @@ single-frame arm trained on the same pastes was runnable and has not been run.
 > [`work/ablation/REPORT.md`](work/ablation/REPORT.md).
 
 The same effect appears at the smallest sizes on our own 8 px task, where the single-frame control
-scores **0.032** against the temporal stack's **0.430** — a 13× gap on the same network and recipe.
+scores **0.032** against the temporal stack's **0.430** — a 13× gap on the same network and recipe,
+and here **neither arm trains on pasted instances**, so this is the pair without the copy-paste
+confound. It is one flight and three seeds: a strong direction, not a tested effect.
 
 ---
 
