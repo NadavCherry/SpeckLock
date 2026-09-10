@@ -26,7 +26,7 @@ Same network, hyperparameters and seed, same **1280 px**, same pipeline, same vi
 | off-the-shelf YOLO26n, single frame @1760 px | **0.110** | [0.000, 0.236] | 0.110 | 1.000 | 0.110 | 0.925 | 40 |
 | this pipeline, EDGE-RT profile | **1.000** | [1.000, 1.000] ⚠️ | 1.000 | 1.000 | 1.000 | 1.000 | 338 |
 
-Where the single-frame column has **precision 1.000 and near-zero recall**, it is not a tuning failure: every detection it makes is correct, it simply does not fire. The target is present and it is not visible to a single-frame model at any threshold.
+Where the off-the-shelf single-frame row has **precision near 1.000 and recall near zero**, it is not a tuning failure: nearly everything it emits is correct, and it emits almost nothing -- counting every detection (‡) does not raise its recall. That is a property of this model, not of single frames. The controlled single-frame arm in 1a, trained on this project's data, reaches a much higher recall when every detection counts, at the precision printed beside it; what it lacks is the ranking, which is what AP measures.
 
 ⚠️ marks a confidence interval of zero width. Both arms here run on **one video with one drone**, so a degenerate interval reflects a sample size of one, not a precise measurement.
 

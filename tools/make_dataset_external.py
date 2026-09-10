@@ -783,7 +783,10 @@ def build_ardmav_temporal_tiled(stride_train, stride_val, min_side, tile=640,
     print(f"window: {taps} taps, stabiliser {stab_mode}")
     train_ids = [v for v in _ard_all() if v not in ARD_TEST_IDS and v not in ARD_VAL_IDS]
     stats = {"train": [0, 0], "val": [0, 0]}
-    print(f"temporal stacks: dt={dt} (taps t-{2*dt}, t-{dt}, t), "
+    # The taps are printed from `taps`, not assumed: this line read "t-30, t-15, t" through
+    # the first centred build (job 21175379), whose tiles were centred all the same.
+    window = f"t-{dt}, t, t+{dt}" if taps == "centred" else f"t-{2 * dt}, t-{dt}, t"
+    print(f"temporal stacks: dt={dt} (taps {window}), "
           f"chroma {'4:4:4' if chroma_444 else '4:2:0 (shipped default)'}, "
           f"min_side={min_side}")
     for split, ids, stride in (("train", train_ids, stride_train),

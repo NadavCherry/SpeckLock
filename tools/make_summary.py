@@ -209,6 +209,43 @@ TESTS = (("temporal", "e30", "singleframe", "e30",
 PRIOR_ART_TESTS = (("temporal", "e100", "tyolov8", "e70",
                     "ours temporal 100 ep - Temporal-YOLOv8 70 ep"),)
 
+#: The NPS test clips that run at 59.9 fps (cluster/tyolov8_build.sbatch, job 21175379);
+#: every clip either arm trains on runs at 28.0-29.97. On these two, both arms' fixed frame
+#: offsets span half the time they were trained on. Declared, with the table below, before
+#: any Temporal-YOLOv8 scorecard existed (configs/experiments/prior_art.py).
+NPS_60FPS_TEST = ("Clip_049", "Clip_050")
+
+
+def without_60fps_lines(rows, seeds) -> list[str]:
+    """PRIOR_ART_TESTS on NPS without NPS_60FPS_TEST: an effect size per seed, no test.
+
+    Descriptive on purpose. A second test on a subset would be a second question, and it
+    would either join the Holm family above -- making the declared question's correction
+    harsher -- or sit outside it, uncorrected. Printing the difference answers what a reader
+    needs (does the headline lean on the two clips?) without doing either.
+    """
+    out = []
+    for a_arm, a_bud, b_arm, b_bud, title in PRIOR_ART_TESTS:
+        for seed in seeds:
+            ka, kb = (a_arm, a_bud, seed), (b_arm, b_bud, seed)
+            if ka not in rows or kb not in rows:
+                continue
+            ia = {q.sequence: q for q in rows[ka]["seqs"] if q.sequence not in NPS_60FPS_TEST}
+            ib = {q.sequence: q for q in rows[kb]["seqs"] if q.sequence not in NPS_60FPS_TEST}
+            common = sorted(set(ia) & set(ib))
+            if len(common) < 2:
+                continue
+            d = pooled_ap([ia[k] for k in common]) - pooled_ap([ib[k] for k in common])
+            out.append(f"| {title} | {seed} | {len(common)} | {d:+.3f} |")
+    if not out:
+        return []
+    return ["#### Without the two 59.9 fps test clips -- descriptive, no verdict", "",
+            f"{' and '.join(NPS_60FPS_TEST)} run at 59.9 fps, where both arms' fixed frame "
+            "offsets span half the time they were trained on (15 frames: 0.25 s; 6 frames: "
+            "0.10 s). Declared before any Temporal-YOLOv8 scorecard existed. No test is run "
+            "on this subset, so the Holm family above stays the one question it was declared as.",
+            "", "| comparison | seed | sequences | d AP |", "|---|---|---|---|", *out, ""]
+
 
 def main() -> int:
     use_utf8_stdio()
@@ -308,6 +345,8 @@ def main() -> int:
                   "| comparison | seed | d AP | 95% CI | p boot | p perm | p perm, Holm | verdict |",
                   "|---|---|---|---|---|---|---|---|"]
             L += holm_table(prior)
+            if ds == "nps":
+                L += without_60fps_lines(rows, seeds)
 
 
         # --- ARD-MAV only: GLAD's own condition grouping. The overall AP hides the

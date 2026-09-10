@@ -37,3 +37,9 @@ def test_budget_labels_are_true(ms):
     assert ms._budget_label("yolomg", "e30") == "100 ep"
     assert ms._budget_label("temporal", "e100") == "100 ep"
     assert ms._budget_label("temporal", "e30") == "30 ep"
+
+
+def test_the_60fps_subset_is_declared_and_descriptive(ms):
+    """Named before any Temporal-YOLOv8 scorecard existed; printed as effect sizes only."""
+    assert ms.NPS_60FPS_TEST == ("Clip_049", "Clip_050")
+    assert ms.without_60fps_lines({}, [0, 1, 2]) == []
