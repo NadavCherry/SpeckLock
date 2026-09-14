@@ -392,7 +392,7 @@ and a §12 row carry the results:
 |---|---|---|---|
 | ARD-MAV, official split | 0.809 | 0.807 | no difference, any seed |
 | NPS-Drones, video-disjoint | 0.487 | 0.531 | no difference, any seed |
-| our 8 px task | ours leads 1 of 3 seeds, ties the other 2 | | |
+| our 8 px task | — | — | ours leads 1 of 3 seeds, ties the other 2 |
 
 No difference on either public benchmark, under the same two-test-plus-Holm rule as every
 other comparison in this file, except one: above 25 px on ARD-MAV, Temporal-YOLOv8 leads
