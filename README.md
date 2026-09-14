@@ -186,6 +186,31 @@ YOLOMG's best seed beats all three of ours.
 > videos are held out is the largest single term in the accounting below. Read this as a
 > **class** comparison, not a leaderboard entry.
 
+### Against the closest prior art: Temporal-YOLOv8, reimplemented
+
+🟢 **demonstrated.** Temporal-YOLOv8 ([van Leeuwen et al., *Sensors* 2024](https://doi.org/10.3390/s24227387))
+stacks three grayscale frames into a stock YOLOv8 — the same basic move as this project, published
+two years earlier (§2). It publishes no code, no weights, and every number on a private dataset, so
+it is reimplemented from the paper — 70 epochs, Adam, a **non-causal** t−15/t/t+15 window with no
+stabilisation — trained on this repository's splits and scored by this repository's evaluator, the
+way YOLOMG is above. [Full comparison, including what is and is not reproduced from the
+paper](docs/reports/prior-art-temporal-yolov8.md).
+
+| benchmark | ours (100 ep) | Temporal-YOLOv8 (70 ep) | paired verdict |
+|---|---|---|---|
+| ARD-MAV, official split | **0.809** | 0.807 | no difference, any seed |
+| NPS-Drones, video-disjoint | 0.487 | **0.531** | no difference, any seed |
+| our 8 px task (fine-tuned) | **0.840** | 0.809 | ours leads 1 of 3 seeds; ties the other 2 |
+
+**No difference detected on either public benchmark**, under the same two-test-plus-Holm rule as
+every comparison above — on ARD-MAV the two arms are numerically close as well as statistically
+indistinguishable; on NPS, Temporal-YOLOv8's point estimate leads and is markedly more stable across
+seeds, but that lead does not clear the significance bar. **The one exception is the same one
+YOLOMG has:** above 25 px on ARD-MAV, Temporal-YOLOv8 leads significantly on 2 of 3 seeds after
+Holm. Its window reads half a second of the future, which a deployed interceptor cannot have; that
+it still does not separate from this project's causal arm on either benchmark, and loses the one
+significant seed on the project's own task, is the finding — not a win being talked down.
+
 ### Why the published NPS number is 0.95 and ours is 0.527
 
 🟢 **demonstrated.** This looked like a two-fold discrepancy and turned out to be three mechanisms,
@@ -408,6 +433,7 @@ Scorecards: [city](work/pursuit/city/METRICS.md) · [pursuit campaign](work/purs
 | ARD-MAV, official 15-video split | **0.809** (3 seeds, 100 ep) | 15 videos · 28,160 boxes | 🟢 |
 | Versus YOLOMG, same evaluator | they lead 0.834 / 0.527, significant on no seed after Holm; we lead <10 px, **not significantly** | 2 benchmarks × 3 seeds | 🟢 |
 | Our 8 px task, fine-tuned | **0.840** vs 0.604 | 1 flight × 3 seeds | 🟢 |
+| Versus Temporal-YOLOv8, reimplemented | no difference, either public benchmark; they lead 2 of 3 seeds above 25 px on ARD-MAV (Holm); we lead 1 of 3 seeds on the 8 px task | 2 benchmarks × 3 seeds + 1 flight × 3 seeds | 🟢 |
 | Birds raised as targets | **0** over **934** instances, training video | 8 bird tracks | 🟢 |
 | Clutter tracks raised | **11** (07_05) · **4** (10_06) | 2 videos | ⚠️ |
 | EDGE-RT speed | **58.9 fps** @1280, AP 0.876 | 341 steady frames timed · 337 boxes scored, RTX 4090 | 🟢 |

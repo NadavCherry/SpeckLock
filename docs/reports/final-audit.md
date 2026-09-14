@@ -10,7 +10,7 @@ published as drafted.** Five specific things are wrong with it, listed in §2. N
 a measurement error — every point estimate in this repository reproduced. They are claims
 that outrun their evidence, and a priority claim that belongs to someone else.
 
-**Status, 2026-09-10:** the claims in §2.2, §2.3 and §2.5 are corrected everywhere they appeared, and every regenerated artefact is committed and verified against what it replaced. §2.1 and §2.4 wait on the author. See §8.
+**Status, 2026-09-14:** all five items are now addressed. §2.2, §2.3 and §2.5 as of 2026-09-10 (§8); §2.1 and §2.4, and the launch hook, by the author's own decision, executed and verified (§9). The launch post remains on hold, by that same decision, and is not covered by any of this.
 
 ---
 
@@ -354,12 +354,14 @@ touch equals what was committed, so each is a re-verdict, not a new experiment.
 
 ### Still open — the author's decision
 
-- **§2.1, prior art.** Temporal-YOLOv8 (TNO, Sensors 2024) is still uncited on every
-  reader-facing surface, and the post's headline still claims the stacking as the contribution.
-- **§2.4, the moving-camera framing** in `README.md:5` and the post. The measured drift on
-  `10_06` is now stated in README §6; the framing itself is unchanged.
-- **The post's hook**, "invisible in a single frame": the controlled single-frame arm reaches
-  recall 0.57 at its lowest threshold. The README caption now says "mostly"; the post does not.
+- **§2.1, prior art — closed 2026-09-14, see §9.** Was: uncited everywhere, headline claimed the
+  stacking as the contribution.
+- **§2.4, the moving-camera framing — closed 2026-09-14, see §9.** Was: `README.md:5` claimed a
+  moving camera for a clip drifting under a pixel.
+- **The launch hook, "invisible in a single frame" — closed 2026-09-14, see §9.** Was: the
+  controlled single-frame arm reaches recall 0.57 at its lowest threshold, so nothing in the
+  repository is actually invisible to it. The launch post itself is untouched, by the author's
+  standing decision to hold it.
 
 ### Still open — items closed to be kept as written
 
@@ -369,6 +371,71 @@ touch equals what was committed, so each is a re-verdict, not a new experiment.
   that the dt = 6 baseline was scored without the guards the other arms passed.
 - **Item #1 (NPS).** The +0.291 term subtracts a one-seed number from a three-seed mean (the
   seed-matched value is +0.263), and the +0.045 leakage term is one run with no test.
+
+## 9 · Status after the author's decisions (2026-09-14)
+
+The author decided the three items §8 left open, in these words: run the comparison against the
+prior art and report what it says; rewrite the moving-camera framing around the measured drift;
+drop "invisible" for the exact numbers. All three are done, on the README, CITATION.cff, the site
+and its figures — the launch post stays on hold, unchanged, by the same decision.
+
+### §2.1 — prior art, with real numbers
+
+Temporal-YOLOv8 (van Leeuwen et al., TNO, *Sensors* 2024) is reimplemented from its paper --
+70 epochs, Adam, a non-causal t-15/t/t+15 window, no stabilisation -- trained on this
+repository's splits and scored by its evaluator
+([full report](prior-art-temporal-yolov8.md)). README §2 cites it as the older form of the
+idea and states what differs (a causal window on ego-stabilised video); a new §5 subsection
+and a §12 row carry the results:
+
+| benchmark | ours (100 ep) | Temporal-YOLOv8 (70 ep) | verdict |
+|---|---|---|---|
+| ARD-MAV, official split | 0.809 | 0.807 | no difference, any seed |
+| NPS-Drones, video-disjoint | 0.487 | 0.531 | no difference, any seed |
+| our 8 px task | ours leads 1 of 3 seeds, ties the other 2 | | |
+
+No difference on either public benchmark, under the same two-test-plus-Holm rule as every
+other comparison in this file, except one: above 25 px on ARD-MAV, Temporal-YOLOv8 leads
+significantly on 2 of 3 seeds after Holm -- the same size regime YOLOMG also wins. Named in
+both the report and the README, not smoothed over.
+
+### §2.4 — the moving-camera framing, and the launch hook
+
+Both replaced by measurement rather than by softer prose. Camera motion is now measured the
+same way on every dataset a claim is made about (`tools/camera_motion.py`,
+`work/reports/camera_motion/`): median background motion across the stack's 12-frame window is
+0.142 px on `10_06` (the clip behind the headline 0.159 -> 0.895 result), 11.5 px on ARD-MAV,
+59.6 px on NPS. README §3 and §6 now say the gain is measured on near-static video and not
+detected on the two benchmarks whose cameras move; "from a moving camera" is gone from the
+README lede, the site, CITATION.cff and the package description.
+
+"Invisible" is gone from every reader-facing surface. In its place: the controlled
+single-frame model finds the drone in 57 % of labelled frames when every detection is kept
+-- it misses it outright in the other 43 %, which caps its AP at 0.570 however well it
+ranked -- and where it does find it, 96 % of its detections in scored frames are false. AP
+0.159 -> 0.895. That is a more exact and more defensible claim than "invisible", not a
+weaker one.
+
+### Found and fixed while executing this
+
+- An adversarial re-read of the day's own changes (2026-09-10) found fifteen discrepancies
+  before the prior-art results existed -- among them "no detector here was trained on"
+  `10_06` (the reverse-direction local arms are), the R/G/B channel order stated backwards in
+  five places, and a site table crediting the per-dataset temporal arm's 0.809 to a different
+  model. Each was re-verified against its artefact and fixed.
+- `tools/make_gallery.py` still generated three claims the page had been hand-corrected past
+  ("unseen test video" for a development video, "AP / F1 = 1.000 . zero false positives", an
+  unreproduced "~74 fps"), so the documented regeneration command would have put them back. The
+  generator is now the source of truth, and a test holds the two together.
+- `tools/train.py` read git's output through the OS locale, which silently dropped the
+  uncommitted-diff hash from training provenance whenever a non-ASCII edit was in the tree --
+  found from eleven intermittent test warnings, not from the prior-art work directly.
+- The Temporal-YOLOv8 training run itself found a genuine bug unrelated to any of the above:
+  `plots: True` (a default this project's training wrapper has always passed) let ultralytics'
+  per-epoch matplotlib figures accumulate over a 70-epoch run, OOM-killing two ARD-MAV seeds at
+  a tightly-sized memory ceiling a short pilot could not have anticipated. Fixed at the source
+  (`plots: False`; nothing in this repository reads the figures it was generating) rather than
+  by requesting more memory, and confirmed by both retrained seeds completing cleanly.
 
 ### Still open — smaller
 
