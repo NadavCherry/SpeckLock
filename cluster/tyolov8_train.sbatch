@@ -4,23 +4,18 @@
 #SBATCH --job-name sl_tytrain
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tytrain-%A_%a.out
 #SBATCH --gpus=rtx_4090:1
-#SBATCH --mem=14000M
+#SBATCH --mem=15200M
 #SBATCH --array=0-5
-### 14000M -- an EXTRAPOLATION, not a clean measurement, and the number most likely to need
-### another edit. The pilot (job 21175865, NPS, 20 min) measured a cgroup peak of 8,362 MiB and
-### said nothing about growth over a full run, because it never ran long enough to show any:
-### with `plots: True` (tools/train.py, now fixed below) ultralytics regenerates its per-epoch
-### matplotlib figures every validation pass, and three real seeds later showed RAM climbing
-### roughly linearly with epoch count under that setting -- NPS seeds measured (uncapped) at
-### 6,011 MiB/50 epochs and 8,029 MiB/57 epochs (~288 MiB/epoch); two ARD-MAV seeds (0, 1) were
-### OOM-killed at the old 10,000M ceiling around epoch 57-58, and a third (2) only finished
-### because it happened to early-stop at epoch 55, right at that same ceiling. `plots` is now
-### False -- nothing in this repository reads results.png/confusion_matrix.png/PR_curve.png/
-### labels.jpg (checked with a repo-wide grep, not assumed) -- which should remove the leak's
-### likeliest source, but no run has completed under the fix yet. 14000M is comfortably above
-### where the leaky code failed, so it should be safe even if the fix is incomplete; the real
-### number is whatever the next run's own cgroup-peak line below says.
-### GPU memory peaked at 4,456 MiB (nvidia-smi, CUDA context included) on the pilot.
+### 15200M, measured: the two ARD-MAV seeds that were previously OOM-killed at a 10,000M
+### ceiling (0, 1) were retrained under the `plots: False` fix below and both completed
+### cleanly this time -- seed 0 peaked at 12,663 MiB (57 epochs, early-stopped), seed 1 at
+### 10,289 MiB (61 epochs). The fix worked: with `plots: True`, ultralytics regenerates its
+### per-epoch matplotlib figures every validation pass, and RAM had climbed roughly linearly
+### with epoch count (NPS seeds measured uncapped at 6,011 MiB/50 epochs and 8,029 MiB/57,
+### ~288 MiB/epoch, before the fix); nothing in this repository reads results.png/
+### confusion_matrix.png/PR_curve.png/labels.jpg (checked with a repo-wide grep). 15200M is
+### the worse of the two real peaks (12,663 MiB) plus ~20%.
+### GPU memory peaked at 4,456 MiB (nvidia-smi, CUDA context included) on the original pilot.
 ### 10 h: the pilot's NPS epochs took ~130 s with validation, so ARD-MAV's 70 (1.9x the tiles)
 ### are ~4.8 h; about twice that. The array throttle (%N) is set at submission from
 ### cluster/gpu_budget.sh, because the limit of 7 GPUs is shared with every job this account runs.
