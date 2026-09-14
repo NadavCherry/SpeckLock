@@ -17,8 +17,9 @@ Protocol `ardmav-official`, split `official-test-15`. Seed-matched paired bootst
 | ours single-frame (control) | 30 ep | **0.766** +/- 0.006  (0.773, 0.761, 0.763) |
 | ours single-frame (control) | 100 ep | **0.768** +/- 0.016  (0.752, 0.784, 0.768) |
 | **YOLOMG** (competitor) | 100 ep | **0.834** +/- 0.008  (0.842, 0.828, 0.831) |
+| Temporal-YOLOv8 (prior art, reimplemented) | 70 ep | **0.807** +/- 0.001  (0.807, 0.806, 0.808) |
 
-GT instances scored, per arm: **ours** temporal (30 ep) 28,160; **ours** temporal (100 ep) 28,160; ours single-frame (control) (30 ep) 28,160; ours single-frame (control) (100 ep) 28,160; **YOLOMG** (competitor) (100 ep) 28,138. They differ, so they are printed rather than asserted.
+GT instances scored, per arm: **ours** temporal (30 ep) 28,160; **ours** temporal (100 ep) 28,160; ours single-frame (control) (30 ep) 28,160; ours single-frame (control) (100 ep) 28,160; **YOLOMG** (competitor) (100 ep) 28,138; Temporal-YOLOv8 (prior art, reimplemented) (70 ep) 28,160. They differ, so they are printed rather than asserted.
 
 ### Paired tests, seed-matched
 
@@ -39,6 +40,18 @@ GT instances scored, per arm: **ours** temporal (30 ep) 28,160; **ours** tempora
 
 Holm over the 12 rows of this table changed no verdict.
 
+### Against the closest prior art: Temporal-YOLOv8, reimplemented
+
+van Leeuwen et al., Sensors 2024: three grayscale frames at t-15, t, t+15, no stabilisation, YOLOv8m, 70 epochs, Adam. configs/experiments/prior_art.py lists what is reproduced and what is not. Its window reads half a second of the future and ours does not. This table is its own Holm family, declared before its scorecards existed, so adding it changed no verdict above.
+
+| comparison | seed | d AP | 95% CI | p boot | p perm | p perm, Holm | verdict |
+|---|---|---|---|---|---|---|---|
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 0 | -0.001 | [-0.052, +0.062] | 0.9980 | 0.9695 | 1.0000 | no difference |
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 1 | +0.010 | [-0.037, +0.072] | 0.7140 | 0.7866 | 1.0000 | no difference |
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 2 | -0.001 | [-0.045, +0.058] | 0.9480 | 0.9660 | 1.0000 | no difference |
+
+Holm over the 3 rows of this table changed no verdict.
+
 ### By condition (GLAD's grouping: 5 sequences each)
 
 | arm | ordinary | complex | small |
@@ -49,6 +62,7 @@ Holm over the 12 rows of this table changed no verdict.
 | ours single-frame (control) (30 ep) | 0.948 | 0.790 | 0.539 |
 | ours single-frame (control) (100 ep) | 0.950 | 0.797 | 0.550 |
 | **YOLOMG** (competitor) (100 ep) | 0.952 | 0.871 | 0.619 |
+| Temporal-YOLOv8 (prior art, reimplemented) (70 ep) | 0.962 | 0.847 | 0.565 |
 
 #### Paired test on the SMALL condition, ours (100 ep) vs YOLOMG
 
@@ -73,6 +87,7 @@ Protocol `nps-official`, split `nps-no-official-split`. Seed-matched paired boot
 | ours single-frame (control) | 30 ep | **0.494** +/- 0.044  (0.544, 0.474, 0.464) |
 | ours single-frame (control) | 100 ep | **0.509** +/- 0.022  (0.487, 0.508, 0.532) |
 | **YOLOMG** (competitor) | 100 ep | **0.527** +/- 0.027  (0.497, 0.535, 0.548) |
+| Temporal-YOLOv8 (prior art, reimplemented) | 70 ep | **0.531** +/- 0.012  (0.543, 0.532, 0.519) |
 
 Every arm is scored on the same 9,124 GT instances.
 
@@ -95,6 +110,28 @@ Every arm is scored on the same 9,124 GT instances.
 
 Holm over the 12 rows of this table removed 3 verdict(s): ours temporal - ours single-frame (30 ep), seed 0 (uncorrected: worse); ours temporal - ours single-frame (100 ep), seed 2 (uncorrected: worse); ours temporal 100 ep - YOLOMG, seed 2 (uncorrected: worse).
 
+### Against the closest prior art: Temporal-YOLOv8, reimplemented
+
+van Leeuwen et al., Sensors 2024: three grayscale frames at t-15, t, t+15, no stabilisation, YOLOv8m, 70 epochs, Adam. configs/experiments/prior_art.py lists what is reproduced and what is not. Its window reads half a second of the future and ours does not. This table is its own Holm family, declared before its scorecards existed, so adding it changed no verdict above.
+
+| comparison | seed | d AP | 95% CI | p boot | p perm | p perm, Holm | verdict |
+|---|---|---|---|---|---|---|---|
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 0 | -0.061 | [-0.106, -0.015] | 0.0070 | 0.5662 | 1.0000 | no difference |
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 1 | +0.012 | [-0.057, +0.061] | 0.6800 | 0.8866 | 1.0000 | no difference |
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 2 | -0.084 | [-0.150, -0.034] | 0.0000 | 0.2129 | 0.6387 | no difference |
+
+Holm over the 3 rows of this table changed no verdict.
+
+#### Without the two 59.9 fps test clips -- descriptive, no verdict
+
+Clip_049 and Clip_050 run at 59.9 fps, where both arms' fixed frame offsets span half the time they were trained on (15 frames: 0.25 s; 6 frames: 0.10 s). Declared before any Temporal-YOLOv8 scorecard existed. No test is run on this subset, so the Holm family above stays the one question it was declared as.
+
+| comparison | seed | sequences | d AP |
+|---|---|---|---|
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 0 | 8 | -0.078 |
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 1 | 8 | -0.024 |
+| ours temporal 100 ep - Temporal-YOLOv8 70 ep | 2 | 8 | -0.127 |
+
 ## The project's own videos
 
 One held-out flight, so the interval there is a **moving-block bootstrap over 30-frame blocks WITHIN one sequence**: stability across that flight's segments, not generalisation to another flight. Per-seed tables:
@@ -105,6 +142,12 @@ One held-out flight, so the interval there is a **moving-block bootstrap over 30
 - `local_ft_10_06_seed0.md`
 - `local_ft_10_06_seed1.md`
 - `local_ft_10_06_seed2.md`
+- `local_ft_ours_vs_tyolov8_10_06_seed0.md`
+- `local_ft_ours_vs_tyolov8_10_06_seed1.md`
+- `local_ft_ours_vs_tyolov8_10_06_seed2.md`
+- `local_ft_tyolov8_10_06_seed0.md`
+- `local_ft_tyolov8_10_06_seed1.md`
+- `local_ft_tyolov8_10_06_seed2.md`
 - `local_rev_07_05_seed0.md`
 - `local_rev_07_05_seed1.md`
 - `local_rev_07_05_seed2.md`
