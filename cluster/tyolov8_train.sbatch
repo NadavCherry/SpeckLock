@@ -4,13 +4,23 @@
 #SBATCH --job-name sl_tytrain
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tytrain-%A_%a.out
 #SBATCH --gpus=rtx_4090:1
-#SBATCH --mem=10000M
+#SBATCH --mem=14000M
 #SBATCH --array=0-5
-### 10000M, measured: the pilot (job 21175865) training this arm on NPS at batch 8 peaked at
-### 8,362 MiB for the whole job -- the cgroup's figure, which counts the four data-loader workers
-### that /usr/bin/time cannot see (its single-process peak was 4,930 MiB). Plus ~20 %. No image
-### cache is used (tools/train.py passes none), so ARD-MAV's larger training set adds label
-### arrays, not images. GPU memory peaked at 4,456 MiB (nvidia-smi, CUDA context included).
+### 14000M -- an EXTRAPOLATION, not a clean measurement, and the number most likely to need
+### another edit. The pilot (job 21175865, NPS, 20 min) measured a cgroup peak of 8,362 MiB and
+### said nothing about growth over a full run, because it never ran long enough to show any:
+### with `plots: True` (tools/train.py, now fixed below) ultralytics regenerates its per-epoch
+### matplotlib figures every validation pass, and three real seeds later showed RAM climbing
+### roughly linearly with epoch count under that setting -- NPS seeds measured (uncapped) at
+### 6,011 MiB/50 epochs and 8,029 MiB/57 epochs (~288 MiB/epoch); two ARD-MAV seeds (0, 1) were
+### OOM-killed at the old 10,000M ceiling around epoch 57-58, and a third (2) only finished
+### because it happened to early-stop at epoch 55, right at that same ceiling. `plots` is now
+### False -- nothing in this repository reads results.png/confusion_matrix.png/PR_curve.png/
+### labels.jpg (checked with a repo-wide grep, not assumed) -- which should remove the leak's
+### likeliest source, but no run has completed under the fix yet. 14000M is comfortably above
+### where the leaky code failed, so it should be safe even if the fix is incomplete; the real
+### number is whatever the next run's own cgroup-peak line below says.
+### GPU memory peaked at 4,456 MiB (nvidia-smi, CUDA context included) on the pilot.
 ### 10 h: the pilot's NPS epochs took ~130 s with validation, so ARD-MAV's 70 (1.9x the tiles)
 ### are ~4.8 h; about twice that. The array throttle (%N) is set at submission from
 ### cluster/gpu_budget.sh, because the limit of 7 GPUs is shared with every job this account runs.
@@ -21,7 +31,9 @@
 ###
 ### NO --requeue. tools/train.py refuses to start over a recorded run without --force, so a
 ### requeued task would fail rather than restart from epoch 0 under the same name; a preempted
-### task is resubmitted by hand, visibly.
+### task is resubmitted by hand, visibly. Pass FORCE=1 (--export) to retry a seed that already
+### has a MANIFEST.json from a failed attempt -- unset by default so an accidental resubmission
+### of a GOOD run aborts loudly instead of silently overwriting it.
 set -uo pipefail
 ROOT=${SPECKLOCK_ROOT:-/home/cherryn/projects/SpeckLock}
 cd "$ROOT"; module load anaconda; source activate speck
@@ -35,7 +47,7 @@ echo "JOB $SLURM_JOB_ID task $I = $CFG seed $SEED, 70 epochs -> $RUN on $(hostna
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 
 /usr/bin/time -v python -u tools/train.py --config "$CFG" --seed "$SEED" \
-    --out-root work/runs_tyolov8 --vram-gib 24
+    --out-root work/runs_tyolov8 --vram-gib 24 ${FORCE:+--force}
 rc=$?
 
 [ -f "$RUN/weights/best.pt" ] && ls -la "$RUN/weights/best.pt" || echo "*** NO WEIGHTS ***"

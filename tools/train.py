@@ -551,7 +551,20 @@ def ultralytics_kwargs(cfg: ExperimentConfig, seed: int, run_dir: Path,
         "patience": cfg.patience,
         "workers": cfg.workers,
         "cos_lr": cfg.cos_lr,
-        "plots": True,
+        # False, not True: ultralytics regenerates its per-epoch matplotlib figures
+        # (results.png, confusion_matrix.png, PR_curve.png, labels.jpg, ...) on every
+        # validation pass and nothing in this repository reads any of them -- checked with
+        # a repo-wide grep for those filenames before this was flipped, not assumed. Three
+        # Temporal-YOLOv8 seeds (configs/experiments/prior_art.py) showed cgroup RAM rising
+        # roughly linearly with epoch count and two were OOM-killed around epoch 57-58 at a
+        # 10G ceiling that a 20-minute pilot had not run long enough to see coming
+        # (cluster/tyolov8_pilot.sbatch); repeated figure objects that are never closed
+        # across a 70-epoch run is the standard shape of that growth. Every other arm in
+        # this project has always trained under the 24G "habit" (cluster/matched100.sbatch
+        # and siblings), which was generous enough to hide the same leak if it was already
+        # there -- this was never load-bearing until a run was sized tightly enough to hit
+        # it, which is exactly what happened here.
+        "plots": False,
         "hsv_h": a.hsv_h, "hsv_s": a.hsv_s, "hsv_v": a.hsv_v,
         "degrees": a.degrees, "translate": a.translate, "scale": a.scale,
         "shear": a.shear, "fliplr": a.fliplr, "flipud": a.flipud,

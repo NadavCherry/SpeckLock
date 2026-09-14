@@ -461,6 +461,15 @@ def test_exist_ok_is_set_so_the_manifest_and_the_weights_share_a_directory(tmp_p
     assert kw["exist_ok"] is True
 
 
+def test_plots_are_off_because_nothing_in_this_repo_reads_them(tmp_path):
+    """Regenerating per-epoch matplotlib figures is what grew a Temporal-YOLOv8 training
+    job's RAM until two seeds were OOM-killed (configs/experiments/prior_art.py, the
+    10G-ceiling runs of 2026-09-10/11). Pinned so a future edit re-enabling it is a
+    deliberate choice, not a silent reversion."""
+    kw = T.ultralytics_kwargs(get("baseline_ardmav"), 0, tmp_path / "r")
+    assert kw["plots"] is False
+
+
 def test_optional_knobs_are_omitted_rather_than_passed_as_none(tmp_path):
     kw = T.ultralytics_kwargs(get("baseline_ardmav"), 0, tmp_path / "r")
     assert "lr0" not in kw and "freeze" not in kw and "device" not in kw
