@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_scpaired
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/scpaired-%j.out
 #SBATCH --mem=1100M
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### Only the size curves that carry a PAIRED table -- the `mission` bins of the datasets
 ### with more than one test sequence -- re-run so their verdicts go through the Holm
 ### correction (docs/research/INFRA.md section 6.1). The aitod bin set and local_ft carry

@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_figures
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/figures-%j.out
 #SBATCH --mem=450M
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### 450M, measured: the last run (cluster_logs/figures-20944249.out) peaked at 367 MB for
 ### all five paper figures, video decode included -- that plus ~20%. It was 1G, sized from
 ### an earlier 215 MB measurement; the peak moved, which is why every step prints its own.

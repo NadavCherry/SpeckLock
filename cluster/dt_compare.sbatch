@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_dtcmp
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/dtcmp-%j.out
 #SBATCH --mem=3G
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### 3G, measured rather than guessed: 15 arms, half of make_summary's 30.
 ### This cluster sets JobAcctGatherType=(null), so sacct MaxRSS and sstat are both
 ### empty and nothing ever contradicted an over-request. The python step below runs

@@ -5,6 +5,13 @@
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/dtbuild-%A_%a.out
 #SBATCH --mem=8G
 #SBATCH --array=0-3
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 
 ### NO --gpus. Decoding video, ego-stabilising with KLT+RANSAC, tiling and writing JPEG
 ### is entirely CPU work -- there is no CUDA kernel anywhere in this path, so holding a

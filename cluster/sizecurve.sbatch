@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_sizecurve
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/sizecurve-%j.out
 #SBATCH --mem=1G
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### 1G and 8h, both measured on a real run: peak RSS was 513 MB for the largest arm
 ### set, and the 3h limit was hit part-way through the second bin set. The paired
 ### bootstrap and permutation per bin per seed is what costs the time, not memory --

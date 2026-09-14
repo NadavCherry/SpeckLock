@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_ablation
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/ablation-%j.out
 #SBATCH --mem=60M
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### 60M, measured: the first run (job 21172331) peaked at 48,176 kB under /usr/bin/time --
 ### that plus ~20%. It was first submitted at 250M on a reasoned estimate ("numpy-only
 ### imports, eight small JSON files, roughly 200 MB"), which was 5x too high. Reasoning about

@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_tylocbuild
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tylocbuild-%j.out
 #SBATCH --mem=160M
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### 160M, measured: the first run (job 21175761) peaked at 135,428 kB in the build and 79,296 kB
 ### in the test gate, under /usr/bin/time -- one process each. 132 MiB plus ~20 %. It was 300M,
 ### estimated from the benchmark build on larger video before either step had been measured here.

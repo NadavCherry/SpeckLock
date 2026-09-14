@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_tyscore
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tyscore-%j.out
 #SBATCH --mem=850M
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### 850M is an ESTIMATE: tools/size_curve.py, which loads the same ground truth and three arms'
 ### detections at once, peaked at 624,708 kB (NPS) and 511,676 kB (ARD-MAV); one arm's scoring
 ### should need no more. Every step runs under /usr/bin/time -v, one process each, so the log

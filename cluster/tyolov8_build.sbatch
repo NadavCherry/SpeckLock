@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_tybuild
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/tybuild-%j.out
 #SBATCH --mem=800M
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### 800M is an ESTIMATE: the builder is one process decoding 1920x1080 video into a 31-frame
 ### grayscale ring buffer (~62 MB) and writing JPEG tiles. Each build runs under /usr/bin/time -v,
 ### and one process's peak is the job's, so the next edit to this line should come from the log.

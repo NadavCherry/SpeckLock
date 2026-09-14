@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_cammotion
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/cammotion-%j.out
 #SBATCH --mem=500M
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### 500M is an ESTIMATE: one process holding two full-resolution float32 frames, a Hanning
 ### window and phaseCorrelate's FFT buffers -- a few hundred MB with cv2 and numpy loaded.
 ### Each step runs under /usr/bin/time -v, and a single process's peak RSS is the job's, so

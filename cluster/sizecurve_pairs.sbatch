@@ -4,6 +4,13 @@
 #SBATCH --job-name sl_scpairs
 #SBATCH --output /home/cherryn/projects/SpeckLock/cluster_logs/scpairs-%j.out
 #SBATCH --mem=1100M
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1  ### the cluster's own efficiency report (2026-09-14) flagged two
+### of this project's CPU jobs (sl_sc_ardmav, sl_regensum) at CPU-Util ~= 100%/CPU-Cores --
+### its signature for serial code on a multi-core allocation. Every #SBATCH block here that
+### named no --gpus and no --cpus-per-task was still getting 2 cores by cluster default and
+### using one of them; this pins it to the one core these single-process steps actually use.
 ### Size curves for two comparisons the shipped size-crossover table does not make.
 ### tools/size_curve.py tests its first "our" arm against the FIRST other arm only, so each
 ### comparison is its own two-arm run, into its own directory: the shipped
