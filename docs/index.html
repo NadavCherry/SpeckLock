@@ -512,6 +512,40 @@ footer .fl{display:flex;flex-wrap:wrap;gap:20px;margin-top:14px}
     that scored its AP of 0.876), against a published range of ~1&nbsp;fps (Dogfight) to 147 (GLAD).
   </p>
 
+  <h3>Against the closest prior art: Temporal-YOLOv8, reimplemented</h3>
+  <p>
+    <a href="https://doi.org/10.3390/s24227387">Temporal-YOLOv8</a> (van Leeuwen et al., TNO,
+    <em>Sensors</em> 2024) stacks three grayscale frames into a stock YOLOv8 — the same basic move
+    as this project, published two years earlier. It ships no code, no weights, and every number
+    on a private dataset, so it is reimplemented from the paper — 70 epochs, Adam, a
+    <b>non-causal</b> t&minus;15/t/t+15 window with no stabilisation — trained on this repository's
+    splits and scored by this repository's evaluator, the way YOLOMG is above.
+    <a href="https://github.com/NadavCherry/SpeckLock/blob/main/docs/reports/prior-art-temporal-yolov8.md">Full
+    comparison, including what is and is not reproduced from the paper &#8594;</a>
+  </p>
+  <div class="tw"><table>
+    <thead><tr><th>benchmark</th><th class="n">ours (100 ep)</th><th class="n">Temporal-YOLOv8 (70 ep)</th><th>paired verdict</th></tr></thead>
+    <tbody>
+      <tr><td>ARD-MAV, official split</td><td class="n"><b>0.809</b></td><td class="n">0.807</td>
+          <td>no difference, any seed</td></tr>
+      <tr><td>NPS-Drones, video-disjoint</td><td class="n">0.487</td><td class="n"><b>0.531</b></td>
+          <td>no difference, any seed</td></tr>
+      <tr><td>our 8&nbsp;px task (fine-tuned)</td><td class="n"><b>0.840</b></td><td class="n">0.809</td>
+          <td>ours leads 1 of 3 seeds; ties the other 2</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small">
+    <b>No difference detected on either public benchmark</b>, under the same two-test,
+    Holm-corrected rule as the YOLOMG comparison above — on ARD-MAV the two arms are numerically
+    close as well as statistically indistinguishable; on NPS, Temporal-YOLOv8's point estimate
+    leads and is markedly more stable across seeds, but that lead does not clear the significance
+    bar. <b>The one exception is the same one YOLOMG has:</b> above 25&nbsp;px on ARD-MAV,
+    Temporal-YOLOv8 leads significantly on 2 of 3 seeds after Holm. Its window reads half a second
+    of the future, which a deployed interceptor cannot have; that it still does not separate from
+    this project's causal arm on either benchmark, and loses the one significant seed on the
+    project's own task, is the finding — not a win being talked down.
+  </p>
+
   <!-- ---------------- interception ---------------- -->
   <h3 style="margin-top:44px"><span class="chip sim" style="vertical-align:middle;margin-right:8px"><span class="dot"></span>Isaac Sim</span> Interception</h3>
   <p>
