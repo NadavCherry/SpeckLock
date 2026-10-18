@@ -4,7 +4,7 @@
 CI installs only numpy, scipy, opencv-headless and pytest. A top-level
 ``import torch`` anywhere in a test's import chain therefore passes on a developer
 machine — where torch is present — and fails in CI. That failure mode has a long history
-in this repo (`.github/workflows/tests.yml` and CLAUDE.md both warn about it), and the
+in this repo (`.github/workflows/tests.yml` warns about it), and the
 existing defence is a convention: keep such imports lazy, inside the function that needs
 them. A convention is not a check.
 
@@ -43,11 +43,12 @@ class _Blocker(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
         root = fullname.split(".")[0]
         if root in BLOCKED:
-            raise ImportError(
+            raise ModuleNotFoundError(       # what CI raises, so pytest.importorskip skips as it does there
                 f"CI-SAFETY VIOLATION: '{{fullname}}' was imported on a test path. "
                 f"CI installs only numpy/scipy/opencv-headless/pytest, so this passes "
                 f"locally and fails there. Move the import inside the function that "
-                f"needs it — that is the existing pattern in pursuit/perception.py."
+                f"needs it — that is the existing pattern in pursuit/perception.py.",
+                name=fullname,
             )
         return None
 

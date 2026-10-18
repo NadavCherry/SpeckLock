@@ -9,8 +9,11 @@ around the PC pipeline's measured cost profile (76% = verifier crops,
     rt_models     -- TRT / torch wrappers for the nano detectors
     pipelines     -- RT-A .. RT-F pipeline definitions
     runner        -- timed video runner producing detections + stage stats
+    fixedcam      -- fixed/PTZ-camera drone-vs-bird pipeline (see realtime/fixedcam/README.md)
 
-Training uses data/videos/07_05.mp4 ONLY (time-split). data/videos/10_06.mp4 is a pure test set.
+The rt-* pipelines train on data/videos/07_05.mp4 ONLY (time-split); data/videos/10_06.mp4 is a
+pure test set. fixedcam trains its crop classifier on crops harvested from any labelled corpus
+(tools/fixedcam_harvest*.py).
 """
 
 __version__ = "0.1.0"

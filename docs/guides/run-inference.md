@@ -113,6 +113,9 @@ python -m dronedet eval --gt work/gt_user.json --dets work/det/*.json --frames 3
 # 3. track, then render
 python -m dronedet track  --video data/videos/07_05.mp4 --dets work/det/moe3.json --out work/tracks/moe3.json --min-score 0.2
 python -m dronedet render --video data/videos/07_05.mp4 --dets work/det/moe3.json --out work/vis/moe3.mp4
+
+# class-aware scorecard of a system's final output: centre score, bird-as-drone, other false alarms
+python -m dronedet centerscore --gt G.json --dets P.json [--n-frames N --height H]
 ```
 
 To build a mixture-of-experts / fine-tuned variant, pass `--weights` and `--method-kw` (JSON) — see [`tools/final_round.py`](../../tools/final_round.py) / [`final_round2.py`](../../tools/final_round2.py) for the exact winning configurations.

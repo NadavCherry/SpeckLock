@@ -28,13 +28,12 @@ on:
   workflow_dispatch:
 
 env:
-  # Measured 2026-09-10: 966 collected = 540 pursuit + 426 dronedet.
-  # pursuit/tests is stable, so its floor sits at the exact count; dronedet/tests is
-  # still being written, so its floor sits well below and should be ratcheted up
-  # once the benchmark work has settled.
-  MIN_TOTAL: 940
+  # Measured 2026-10-18: 1089 collected = 540 pursuit + 549 dronedet (torch blocked:
+  # 1084 passed, 5 skipped; CI's slimmer pins skip a few more). pursuit/tests is stable,
+  # so its floor sits at the exact count; the others sit a little below their counts.
+  MIN_TOTAL: 1050
   MIN_PURSUIT: 540
-  MIN_DRONEDET: 400
+  MIN_DRONEDET: 520
 
 jobs:
   pytest:
@@ -74,6 +73,9 @@ jobs:
               "benchmarks.scorecard", "benchmarks.adapters",
               "pursuit", "pursuit.geometry", "pursuit.guidance", "pursuit.episode",
               "simulators.pegasus.pursuit_proto",
+              "dronedet.centerscore",
+              "realtime.fixedcam", "realtime.fixedcam.tracker", "realtime.fixedcam.trackfeat",
+              "realtime.fixedcam.fasttrack",
           ]
           for name in MODULES:
               importlib.import_module(name)

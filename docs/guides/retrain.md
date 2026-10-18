@@ -33,10 +33,15 @@ What's *in* each image is the whole tiny-object recipe (details in the [reports]
 
 Browser labeling UI (stdlib HTTP server + OpenCV, no extra deps): wheel-zoom + loupe, drag/move/resize boxes, per-frame autosave. Seed it from an existing GT to correct rather than start blank.
 
+A side panel sets what the next click places: a label from the class list (keys `1`–`9`) and a box size in image pixels (presets, or any W × H; `[` / `]` step through the presets). A click drops that box centred on the cursor, and a drag still draws a free box. The panel also edits the selected box (label, centre, size) and shows its YOLO line. Boxes are clipped to the image. A frame nobody can judge is marked with `x`, which keeps it out of scoring (`exclude_frames`) and out of the YOLO export.
+
 ```bash
 python tools/label.py                          # -> work/labels.json
 python tools/label.py --from-gt work/gt.json   # seed from an existing GT to correct it
+python tools/label.py --labels L.json --export-yolo DIR --yolo-classes drone,bird [--yolo-images --video V.mp4]
 ```
+
+The YOLO export writes `labels/<prefix>_<frame>.txt`, one `id cx cy w h` line per box normalised to [0, 1], with an empty file for a frame with no object. It also writes `classes.txt`, where line *i* is class id *i*, and optionally the frames as lossless PNGs under `images/`. Ids are positions in the class list, so use one list for every clip.
 
 Then canonicalize the corner-box labels into the GT format the pipeline expects, with an agreement report:
 

@@ -117,6 +117,8 @@ packages = [
     # final/run_final.py imports realtime.{pipelines,rt_models,runner} to serve
     # the edge-rt profile. Its own tools/ has no __init__.py and stays out.
     "realtime",
+    # The fixed/PTZ-camera drone-vs-bird pipeline; its tracker is unit-tested in dronedet/tests.
+    "realtime.fixedcam",
     # Shipped because pursuit imports it host-side: pursuit.run_pursuit and
     # pursuit/tests/test_ring.py read simulators.pegasus.{pursuit_proto,camera}.
     # pursuit_proto is also the only module the Isaac Sim container runs, which

@@ -308,3 +308,36 @@ def test_single_frame_builds_never_get_a_dt_suffix():
     """dt is meaningless without a temporal stack, so it must not reach the name."""
     for dt in (2, 6, 12):
         assert M._temporal_name("nps_yolo_tiled", False, dt) == "nps_yolo_tiled"
+
+
+# --------------------------------------------------------------------------- working-scale builds
+
+def test_scale_boxes_scales_coordinates_and_keeps_the_class():
+    out = M._scale_boxes({3: [[10.0, 20.0, 30.0, 40.0], [0, 0, 2, 2, 1]]}, 0.5)
+    assert out[3][0] == [5.0, 10.0, 15.0, 20.0]
+    assert out[3][1] == [0.0, 0.0, 1.0, 1.0, 1]
+    assert M._scale_boxes({1: [[1, 2, 3, 4]]}, 1.0) == {1: [[1, 2, 3, 4]]}
+
+
+def test_shards_partition_the_ids_exactly_once():
+    ids = [f"v{i}" for i in range(11)]
+    parts = [M._shard(ids, (i, 3)) for i in range(3)]
+    flat = [v for p in parts for v in p]
+    assert sorted(flat) == sorted(ids) and len(flat) == len(ids)
+
+
+def test_a_half_scale_build_puts_the_label_on_the_shrunk_target(tmp_path):
+    """Frames and boxes scaled together: the label still sits on the target, at half the coordinates."""
+    vid = tmp_path / "pan.mp4"
+    boxes = _synthetic_pan(vid)
+    half = M._scale_boxes({f: [list(b) for b in bb] for f, bb in boxes.items()}, 0.5)
+    img_dir, lbl_dir = tmp_path / "images", tmp_path / "labels"
+    n_img, n_box = M.extract_yolo_tiled_temporal(
+        vid, half, [20], img_dir, lbl_dir, "pan", min_side=0, tile=64, jitter=0.0,
+        neg_per_frame=0, dt=6, scale=0.5)
+    assert n_img >= 1 and n_box >= 1
+    img, labels = _read_tile(img_dir, lbl_dir, "pan_00020_0", 64)
+    assert img.shape[:2] == (64, 64) and labels
+    px, py = _channel_peaks(img, margin=8)[2]
+    lx, ly = labels[0]
+    assert abs(lx - px) <= 3 and abs(ly - py) <= 3

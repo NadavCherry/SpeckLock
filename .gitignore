@@ -31,9 +31,27 @@ runs/
 realtime/work/models/v3_full_temporal_n640.pt
 realtime/work/models/v3_full_temporal_n1280_int8.pt
 
+# --- Private footage: never committed, never published (this repository is public) ---
+# The owner's private clips, and everything derived from them (labels, detections,
+# tracks, crops, datasets, training runs, renders, notes), live only under these:
+data/private*/
+work/private*/
+
 # --- Videos & docs ---
-# Ignore videos by default, keep the two sources and the showcase media:
-*.mp4
+# Ignore videos by default -- every common container, in either case (a Linux clone
+# matches case-sensitively, so `*.mp4` alone would let `CLIP.MP4` through) -- and
+# keep only the two public sources and the showcase media:
+*.[mM][pP]4
+*.[mM][oO][vV]
+*.[mM]4[vV]
+*.[mM][kK][vV]
+*.[aA][vV][iI]
+*.[wW][eE][bB][mM]
+*.[mM][tT][sS]
+*.[dD][aA][vV]
+*.[hH]26[45]
+*.26[45]
+*.[hH][eE][vV][cC]
 !data/videos/*.mp4
 !docs/media/*.mp4
 !docs/media/**/*.mp4
@@ -70,8 +88,11 @@ realtime/work/gt1006_verify/sheet_*.png
 # --- final: demo run outputs are regenerable ---
 final/out/
 
-# --- assistant guidance stays local-only ---
+# --- local-only assistant tooling: never part of this repository ---
 CLAUDE.md
+CLAUDE.local.md
+.claude/
+.mcp.json
 
 # Simulator recordings: MP4s plus per-frame JPEG dumps, hundreds of MB per run.
 # Regenerate with simulators/pegasus/scripts/run_in_container.sh

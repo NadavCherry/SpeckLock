@@ -79,7 +79,7 @@ def test_legacy_split_is_reachable_and_is_the_leaky_one(splits):
 
 
 def test_user_videos_keep_10_06_out_of_training(splits):
-    """10_06 is the held-out test video for the repo's own data (CLAUDE.md)."""
+    """10_06 is the held-out test video for the repo's own data (docs/guides/retrain.md)."""
     user = splits()["user"]
     assert user["test"] == ["10_06"]
     assert "10_06" not in user["train"] and "10_06" not in user["val"]

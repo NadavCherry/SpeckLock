@@ -124,6 +124,44 @@ def cmd_render(a: argparse.Namespace) -> None:
     render_detections(a.video, a.dets, a.out, min_score=a.min_score, zoom_best=True)
 
 
+def cmd_centerscore(a: argparse.Namespace) -> None:
+    from .centerscore import average_precision, pool, score_clip
+    from .detections import DetectionSet
+    from .gt import GroundTruth
+
+    if len(a.gt) != len(a.dets):
+        raise SystemExit("--gt and --dets must pair up one-to-one")
+    scores, clips = [], []
+    for g, d in zip(a.gt, a.dets):
+        gt = GroundTruth.load(g)
+        n = a.n_frames or gt.meta.get("n_frames")
+        h = a.height or gt.meta.get("height")
+        if not n or not h:
+            raise SystemExit(f"{g}: pass --n-frames/--height (or store n_frames/height in GT meta)")
+        preds = DetectionSet.load(d)
+        clips.append((gt, preds, int(n), float(h)))
+        scores.append(score_clip(gt, preds, int(n), float(h),
+                                 name=gt.meta.get("clip_id", Path(g).stem), tau=a.tau,
+                                 tau_max=a.tau_max, fps=a.fps))
+    rows = [s.summary() for s in scores]
+    for r, c in zip(rows, clips):
+        r["ap50_iou"] = average_precision([c], "iou", 0.5)
+        r["ap_center"] = average_precision([c], "center", tau=a.tau)
+    if len(scores) > 1:
+        rows.append(pool(scores).summary())
+        rows[-1]["ap50_iou"] = average_precision(clips, "iou", 0.5)
+        rows[-1]["ap_center"] = average_precision(clips, "center", tau=a.tau)
+    keys = ["clip", "drone_frames", "center_score", "hit_rate@tau", "miss_rate", "median_cle_hits",
+            "drone_as_bird_rate", "bird_as_drone_per_min", "bird_frames_with_alarm", "other_fa_per_min",
+            "precision", "mean_iou_hits", "ap50_iou", "ap_center", "lock_latency_frames", "lock_losses"]
+    print(" | ".join(keys))
+    for r in rows:
+        print(" | ".join(str(r.get(k)) for k in keys))
+    if a.out:
+        Path(a.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(a.out).write_text(json.dumps(rows, indent=1), encoding="utf-8")
+
+
 def main() -> None:
     use_utf8_stdio()
     p = argparse.ArgumentParser(prog="dronedet")
@@ -185,6 +223,18 @@ def main() -> None:
     r.add_argument("--out", required=True)
     r.add_argument("--min-score", type=float, default=0.25)
     r.set_defaults(fn=cmd_render)
+
+    c = sub.add_parser("centerscore", help="class-aware center scorecard: stay on the drone's "
+                                           "center, never call a bird a drone")
+    c.add_argument("--gt", nargs="+", required=True, help="GT JSON per clip")
+    c.add_argument("--dets", nargs="+", required=True, help="system output per clip (same order)")
+    c.add_argument("--n-frames", type=int, default=None, help="default: GT meta n_frames")
+    c.add_argument("--height", type=float, default=None, help="default: GT meta height")
+    c.add_argument("--tau", type=float, default=12.0)
+    c.add_argument("--tau-max", type=float, default=20.0)
+    c.add_argument("--fps", type=float, default=25.0)
+    c.add_argument("--out")
+    c.set_defaults(fn=cmd_centerscore)
 
     a = p.parse_args()
     a.fn(a)

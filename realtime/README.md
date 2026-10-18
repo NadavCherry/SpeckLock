@@ -89,6 +89,8 @@ realtime/
   rt_models.py       TRT/ONNX/pt detector wrappers (static-batch chunking)
   pipelines.py       RT-A..RT-F definitions + crowding-aware candidate ranking
   runner.py          per-stage-timed video runner
+  fixedcam/          fixed/PTZ-camera drone-vs-bird pipeline (GPU motion -> 32x32 temporal crops ->
+                     TinyNet -> evidence tracker); see fixedcam/README.md
   tools/
     make_datasets_rt.py   round-2 training sets (superseded by tools/make_datasets_v3.py)
     export_models.py      TRT FP16 + ONNX exports (round 2)
