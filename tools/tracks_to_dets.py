@@ -31,6 +31,10 @@ def main() -> None:
     ap.add_argument("--classify", action="store_true",
                     help="drop tracks the track-level classifier calls 'other' "
                          "(foliage/birds/unknown movers)")
+    ap.add_argument("--allow-motion", action="store_true",
+                    help="with --classify: also count 'motion'-labelled detections as drone "
+                         "evidence (trackclass.classify_tracks allow_motion; off by default, "
+                         "see docs/reports/allow-motion.md)")
     ap.add_argument("--smooth-coast", action="store_true",
                     help="offline smoothing: linearly interpolate coast "
                          "positions across gaps bounded by real detections "
@@ -43,7 +47,8 @@ def main() -> None:
     if a.classify:
         from dronedet.trackclass import classify_tracks
 
-        keep_cls = classify_tracks(raw, json.loads(Path(a.src).read_text(encoding="utf-8")))
+        keep_cls = classify_tracks(raw, json.loads(Path(a.src).read_text(encoding="utf-8")),
+                                   allow_motion=a.allow_motion)
         for tid, info in sorted(keep_cls.items()):
             print(f"  track {tid}: {info['cls']} (conf_frac {info['conf_frac']}, "
                   f"n_conf {info['n_conf']}, n {info['n']})")

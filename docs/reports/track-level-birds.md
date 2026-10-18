@@ -27,7 +27,16 @@ ignore objects are scored neither for nor against.
 ## Results
 
 Both videos, PC-MAX, `CONF_FRAC = 0.70`, `N_CONF = 8`, `LONG_TRACK = 120`,
-`DRONE_SCORE = 0.35`.
+`DRONE_SCORE = 0.35`, `allow_motion = True`.
+
+> **Measured under the classifier's former default.** Everything below counts `motion`-labelled
+> detections as drone evidence (`allow_motion = True`). In PC-MAX those are proposals the
+> verifier did not confirm. [`allow-motion.md`](allow-motion.md) measured what that costs, and
+> the default is now off. On the same tracks the current default raises **2** clutter tracks on
+> 07_05 and **0** on 10_06 instead of 11 and 4, with 0 birds raised either way. Both 07_05 tracks
+> are promoted by the `LONG_TRACK` bypass alone, which is still under review. The numbers below
+> are kept as measured, and the command under *Reproducing* passes `--allow-motion` so it
+> still reproduces them.
 
 ### Before tracking — what the detector produced
 
@@ -129,5 +138,8 @@ PYTHONPATH=. python tools/track_level_birds.py \
     --gt work/gt_user.json \
     --tracks work/tracks3/0705/pc-max-all.json \
     --dets work/det3/0705/pc-max.json \
+    --allow-motion \
     --out work/reports/tracks/pcmax_0705.md
 ```
+
+Drop `--allow-motion` to score the current default.

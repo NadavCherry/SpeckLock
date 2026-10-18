@@ -1,16 +1,21 @@
 # `allow_motion`: what the motion clause costs, measured end to end
 
-**Status: measurement and recommendation only.** No behaviour and no published number is
-changed by this report. The decision belongs to the owner; §6 sets it out.
+**Status: decided (2026-10-18).** The owner adopted the first recommendation in §6:
+`allow_motion` now defaults to `False`, and `tools/tracks_to_dets.py` and
+`tools/track_level_birds.py` take `--allow-motion` to opt back in. `final/run_final.py` follows
+the default, so its step 3 and step 4 now match the `off` arm below. The second decision, on
+`LONG_TRACK`, is still open and the clause is unchanged. The measurements below were taken
+before the flip. The arm names say which behaviour each row describes, and the numbers do not
+depend on the default.
 
 ## 1. The question
 
 `dronedet.trackclass.classify_tracks(..., allow_motion=True)` counts any matched detection
 whose label contains `motion` (score ≥ 0.35) as drone evidence, alongside the verifier's
-`drone*` confirmations. `True` is the default, and it is what `final/run_final.py` (step 3)
-and `tools/tracks_to_dets.py --classify` (run_final's step 4) both use. `tools/run_max.py` is
-the only caller that decides: it passes `allow_motion=near_static`, from a camera-motion
-pre-scan.
+`drone*` confirmations. When this report was written, `True` was the default, and so it was
+what `final/run_final.py` (step 3) and `tools/tracks_to_dets.py --classify` (run_final's step 4)
+both used. `tools/run_max.py` was the only caller that decided: it passes
+`allow_motion=near_static`, from a camera-motion pre-scan.
 
 What the label means depends on the detector that produced it:
 
@@ -36,8 +41,8 @@ summary. Only step 1 (detection) is substituted, by copying a detection JSON, an
 
 | arm | `allow_motion` | `LONG_TRACK` promotion |
 |---|---|---|
-| `on` | True | 120 tracked frames (as shipped): **today's run_final** |
-| `off` | False | 120 (as shipped) |
+| `on` | True | 120 tracked frames (as shipped): **run_final before the flip** |
+| `off` | False | 120 (as shipped): **run_final now** |
 | `off_nobypass` | False | none |
 
 Three sources of detections and tracks:
@@ -164,7 +169,7 @@ LONG_TRACK raises.
 **Gating on camera motion, as run_max does, would change nothing here.** run_max's own pre-scan
 (`prescan_ego`) measures **0.030 px/frame on 07_05 and 0.072 px/frame on 10_06**, far below its
 1.5 px/frame threshold. Both videos are near-static, so the gate selects `allow_motion=True`,
-which is today's default, with its 11 and 4 clutter tracks (shipped: 9 and 1). The clutter on these videos is not
+which was the default, with its 11 and 4 clutter tracks (shipped: 9 and 1). The clutter on these videos is not
 moving-camera parallax. It is foliage and texture on a static camera, and the verifier has
 already rejected it. Whether `motion` is evidence is decided by the **detector** that wrote the
 label, not by the camera.
@@ -177,7 +182,7 @@ appearance requirement. [`track-level-birds.md`](track-level-birds.md) reports t
 two tracks. Every committed round-3 tracked file comes from a rule with **neither** clause.
 [`provenance.md`](../../work/reports/allow_motion/provenance.md) applies 16 candidate rules to
 the 11 committed tracked files whose inputs are also committed. Only appearance-only rules with
-no bypass reproduce all 11. Today's rule (0.35 / 0.70 / motion / 120) reproduces 4, all edge.
+no bypass reproduce all 11. The rule as shipped before the flip (0.35 / 0.70 / motion / 120) reproduces 4, all edge.
 The committed files cannot tell 0.35 / 0.70 from 0.50 / 0.50: both reproduce all 11.
 
 **One caveat on "online".** 636 and 645 do satisfy the rule on their *prefix*, by appearance
@@ -203,19 +208,25 @@ whole-track result, and the round-3 figures share that property.
    caller that knows its detector can decide. So keep the decision explicit at the call site,
    as run_max does, rather than inferring it from the camera.
 
-What the change would involve (not made here):
+**Adopted (2026-10-18).** What changed:
 
-- `dronedet/trackclass.py`: default `False` in `classify_tracks` and `classify_files`, and the
-  docstring updated.
-- `tools/tracks_to_dets.py`: an `--allow-motion` opt-in, so motion is not reachable only
-  through a default.
-- `final/run_final.py`: no change is needed if the default flips. If the default stays, run_final
-  must pass `False` in **both** step 3 and step 4. Those steps classify independently, and fixing
-  one would leave `tracks_drone.json` / `annotated.mp4` disagreeing with `tracked_dets.json`.
-- `tools/track_level_birds.py`: its CLI defaults to motion on (`--no-motion` opts out). Match it
-  to whatever run_final ships, so the bird report measures the shipped behaviour.
-- Published numbers: [`track-level-birds.md`](track-level-birds.md) describes today's default
-  (11 / 4 clutter tracks) and should be re-run after the decision.
+- `dronedet/trackclass.py`: `classify_tracks` and `classify_files` default to `False`, and the
+  docstring says why.
+- `tools/tracks_to_dets.py`: `--allow-motion` opts in, so motion evidence is reached only on
+  request.
+- `final/run_final.py`: unchanged. It relies on the default in **both** step 3 and step 4, so
+  the two still agree with each other. Those steps classify independently, which is why the
+  flip went into the default rather than into one call site.
+- `tools/track_level_birds.py`: defaults to motion off, like run_final. `--allow-motion` opts in,
+  and `--no-motion` is still accepted, now meaning the default.
+- `tools/run_max.py`: unchanged. It passes `allow_motion=near_static` explicitly.
+- `dronedet/tests/test_trackclass_allow_motion.py` pins the default in the library, the file
+  wrapper and `tracks_to_dets.py --classify`.
+- Published numbers are not rewritten.
+  [`track-level-birds.md`](track-level-birds.md) and the README's clutter paragraph were
+  measured under the former default (11 / 4 clutter tracks). They now say so, and the
+  reproduction command passes `--allow-motion` so it still reproduces them. On the same
+  committed artifacts the current default gives 2 / 0 (`off` row, §3).
 
 **A second decision, independent of the first: `LONG_TRACK` in run_final.** With motion off, it
 is the only thing that still separates the committed 07_05 PC-MAX output from its published

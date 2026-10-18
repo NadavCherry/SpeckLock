@@ -3,9 +3,10 @@
 
 WHY THIS EXISTS
 ---------------
-`allow_motion=True` -- the default, and what `final/run_final.py` and
-`tools/tracks_to_dets.py --classify` both use -- counts every detection whose label contains
-'motion' (score >= 0.35) as drone evidence. In PC-MAX's detections a bare 'motion' label is
+`allow_motion=True` counts every detection whose label contains 'motion' (score >= 0.35) as
+drone evidence. Until October 2026 it was the default, and so what `final/run_final.py` and
+`tools/tracks_to_dets.py --classify` both used. On the strength of this tool's measurements
+it is now off unless a caller opts in. In PC-MAX's detections a bare 'motion' label is
 what `dronedet/methods/hybrid2.py` emits when the 640 verifier looked at a motion proposal
 and found neither a drone nor a bird, i.e. it is the verifier's *non*-confirmation. EDGE-RT's
 single net emits no 'motion' labels at all. This tool measures what the flag does to the
@@ -16,13 +17,14 @@ HOW IT MEASURES
 `final.run_final.main()` is executed **unmodified**. Only two of its steps are substituted:
 step 1 (detection) copies a given detection JSON, and step 2 (tracker) copies a given track
 JSON -- or, with `--retrack`, runs today's tracker on the detections. Steps 3-5
-(classification, track-integrated detections, alarm summary) are run_final's own code. The
-False arm flips the *default* of `classify_tracks` / `classify_files`, which is the only way
-to reach step 4's `tools/tracks_to_dets.py` subprocess without editing run_final; that script
-is therefore run in-process. Arms:
+(classification, track-integrated detections, alarm summary) are run_final's own code. Each
+arm sets `allow_motion` without editing run_final. It sets the *default* of `classify_tracks`
+/ `classify_files`, which step 3 calls with no argument. It also adds `--allow-motion` to
+step 4's `tools/tracks_to_dets.py` call when the arm is on. That script runs in-process so
+the substitution reaches it. Arms:
 
-    on            allow_motion=True,  LONG_TRACK as shipped      (today's run_final)
-    off           allow_motion=False, LONG_TRACK as shipped
+    on            allow_motion=True,  LONG_TRACK as shipped      (run_final before the flip)
+    off           allow_motion=False, LONG_TRACK as shipped      (run_final now)
     off_nobypass  allow_motion=False, no LONG_TRACK promotion    (the rule that reproduces
                                                                   every committed round-3
                                                                   tracked-*.json file)
@@ -92,9 +94,12 @@ LONG_TRACK0 = TC.LONG_TRACK
 ARMS = [("on", True, LONG_TRACK0), ("off", False, LONG_TRACK0), ("off_nobypass", False, None)]
 
 _real_run = subprocess.run
+_ARM = {"motion": False}             # the arm in force, for the in-process tracks_to_dets calls
 
 
 def _run_tracks_to_dets(argv: list[str]) -> None:
+    if _ARM["motion"] and "--classify" in argv and "--allow-motion" not in argv:
+        argv = [*argv, "--allow-motion"]
     old = sys.argv
     sys.argv = ["tracks_to_dets.py", *argv]
     try:
@@ -115,6 +120,7 @@ def _inproc_run(cmd, *a, **kw):
 def arm_patches(dets_src: Path, tracks_src: Path, retrack: bool, motion: bool,
                 long_track: int | None):
     real_tracker, real_edge, real_pcmax = TRK.run_tracker_file, RF.run_edge, RF.run_pcmax
+    defaults = TC.classify_tracks.__defaults__, TC.classify_files.__defaults__
 
     def fake_detect(_video, out):
         shutil.copyfile(dets_src, Path(out) / "dets.json")
@@ -130,14 +136,15 @@ def arm_patches(dets_src: Path, tracks_src: Path, retrack: bool, motion: bool,
     subprocess.run = _inproc_run
     TC.classify_tracks.__defaults__ = (motion,)
     TC.classify_files.__defaults__ = (motion,)
+    _ARM["motion"] = motion
     TC.LONG_TRACK = long_track if long_track is not None else 10 ** 9
     try:
         yield
     finally:
         RF.run_edge, RF.run_pcmax, TRK.run_tracker_file = real_edge, real_pcmax, real_tracker
         subprocess.run = _real_run
-        TC.classify_tracks.__defaults__ = (True,)
-        TC.classify_files.__defaults__ = (True,)
+        TC.classify_tracks.__defaults__, TC.classify_files.__defaults__ = defaults
+        _ARM["motion"] = False
         TC.LONG_TRACK = LONG_TRACK0
 
 
@@ -206,8 +213,8 @@ def prefix_decision(tr: dict, dets: dict, motion: bool, long_track: int | None):
 def birds(gt_path: str, out: Path, motion: bool) -> dict:
     argv = ["track_level_birds.py", "--gt", str(REPO / gt_path), "--tracks", str(out / "tracks.json"),
             "--dets", str(out / "dets.json"), "--out", str(out / "birds.md")]
-    if not motion:
-        argv.append("--no-motion")
+    if motion:
+        argv.append("--allow-motion")
     old = sys.argv
     sys.argv = argv
     try:
