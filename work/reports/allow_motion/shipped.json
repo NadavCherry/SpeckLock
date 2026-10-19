@@ -1,0 +1,1367 @@
+{
+  "sources": [
+    {
+      "profile": "pc-max",
+      "video": "07_05",
+      "dets": "pc-max_07_05/dets.json",
+      "tracks": "pc-max_07_05/tracks.json"
+    },
+    {
+      "profile": "pc-max",
+      "video": "10_06",
+      "dets": "pc-max_10_06/dets.json",
+      "tracks": "pc-max_10_06/tracks.json"
+    },
+    {
+      "profile": "edge-rt",
+      "video": "07_05",
+      "dets": "edge-rt_07_05/dets.json",
+      "tracks": "edge-rt_07_05/tracks.json"
+    },
+    {
+      "profile": "edge-rt",
+      "video": "10_06",
+      "dets": "edge-rt_10_06/dets.json",
+      "tracks": "edge-rt_10_06/tracks.json"
+    }
+  ],
+  "retrack": false,
+  "constants": {
+    "CONF_FRAC": 0.7,
+    "N_CONF": 8,
+    "LONG_TRACK": 120,
+    "DRONE_SCORE": 0.35
+  },
+  "rows": [
+    {
+      "profile": "pc-max",
+      "video": "07_05",
+      "arm": "on",
+      "allow_motion": true,
+      "long_track": 120,
+      "tracker": "committed",
+      "n_confirmed_tracks": 25,
+      "kept_track_ids": [
+        1,
+        2,
+        12,
+        34,
+        95,
+        101,
+        134,
+        174,
+        227,
+        260,
+        560,
+        575,
+        601
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 9,
+      "bird_tracks_raised": 1,
+      "bird_tracks_formed": 4,
+      "promoted_by_long_track_only": 1,
+      "raised_but_alarms_txt_not_confirmed": 10,
+      "gt_first_target_frame": 0,
+      "target_alarm_frame": 7,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        8
+      ],
+      "online_clutter_alarms": [
+        {
+          "frame": 120,
+          "id": 34
+        },
+        {
+          "frame": 135,
+          "id": 101
+        },
+        {
+          "frame": 145,
+          "id": 95
+        },
+        {
+          "frame": 151,
+          "id": 134
+        },
+        {
+          "frame": 164,
+          "id": 174
+        },
+        {
+          "frame": 179,
+          "id": 227
+        },
+        {
+          "frame": 194,
+          "id": 260
+        },
+        {
+          "frame": 312,
+          "id": 560
+        },
+        {
+          "frame": 323,
+          "id": 601
+        },
+        {
+          "frame": 369,
+          "id": 679
+        }
+      ],
+      "scores": {
+        "causal": {
+          "ap_far": 0.9282,
+          "best_f1": 0.861,
+          "recall_any": 1.0,
+          "fp_boxes_any": 1633,
+          "n_gt": 548
+        },
+        "smoothed": {
+          "ap_far": 0.9282,
+          "best_f1": 0.861,
+          "recall_any": 1.0,
+          "fp_boxes_any": 1631,
+          "n_gt": 548
+        },
+        "causal_val": {
+          "ap_far": 0.9522,
+          "best_f1": 0.8534,
+          "recall_any": 1.0,
+          "fp_boxes_any": 510,
+          "n_gt": 206
+        },
+        "smoothed_val": {
+          "ap_far": 0.9522,
+          "best_f1": 0.8534,
+          "recall_any": 1.0,
+          "fp_boxes_any": 512,
+          "n_gt": 206
+        }
+      },
+      "raised": [
+        {
+          "id": 1,
+          "cls": "near",
+          "gt_kind": "other-ignore",
+          "n_frames": 571,
+          "n_tracked": 571,
+          "conf_frac": 1.0,
+          "n_conf": 571,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 1 [near]: frames 0-570 (571 covered), confirmed at frame 7 (latency 7 frames)"
+        },
+        {
+          "id": 2,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 571,
+          "n_tracked": 313,
+          "conf_frac": 1.0,
+          "n_conf": 313,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 2 [drone]: frames 0-570 (571 covered), confirmed at frame 8 (latency 8 frames)"
+        },
+        {
+          "id": 12,
+          "cls": "drone",
+          "gt_kind": "bird",
+          "n_frames": 268,
+          "n_tracked": 130,
+          "conf_frac": 0.008,
+          "n_conf": 1,
+          "sustained_only": true,
+          "start": 68,
+          "prefix_decision_frame": 279,
+          "prefix_decision_clause": "sustained",
+          "alarms_txt": "track 12 [drone]: frames 68-335 (268 covered), not confirmed"
+        },
+        {
+          "id": 34,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 90,
+          "n_tracked": 18,
+          "conf_frac": 0.944,
+          "n_conf": 17,
+          "sustained_only": false,
+          "start": 110,
+          "prefix_decision_frame": 120,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 34 [drone]: frames 110-200 (90 covered), not confirmed"
+        },
+        {
+          "id": 95,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 448,
+          "n_tracked": 109,
+          "conf_frac": 1.0,
+          "n_conf": 109,
+          "sustained_only": false,
+          "start": 123,
+          "prefix_decision_frame": 145,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 95 [drone]: frames 123-570 (448 covered), confirmed at frame 395 (latency 272 frames)"
+        },
+        {
+          "id": 101,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 147,
+          "n_tracked": 43,
+          "conf_frac": 1.0,
+          "n_conf": 43,
+          "sustained_only": false,
+          "start": 126,
+          "prefix_decision_frame": 135,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 101 [drone]: frames 126-274 (147 covered), not confirmed"
+        },
+        {
+          "id": 134,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 117,
+          "n_tracked": 31,
+          "conf_frac": 1.0,
+          "n_conf": 31,
+          "sustained_only": false,
+          "start": 134,
+          "prefix_decision_frame": 151,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 134 [drone]: frames 134-250 (117 covered), not confirmed"
+        },
+        {
+          "id": 174,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 179,
+          "n_tracked": 26,
+          "conf_frac": 0.962,
+          "n_conf": 25,
+          "sustained_only": false,
+          "start": 147,
+          "prefix_decision_frame": 164,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 174 [drone]: frames 147-325 (179 covered), not confirmed"
+        },
+        {
+          "id": 227,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 99,
+          "n_tracked": 19,
+          "conf_frac": 1.0,
+          "n_conf": 19,
+          "sustained_only": false,
+          "start": 169,
+          "prefix_decision_frame": 179,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 227 [drone]: frames 169-267 (99 covered), not confirmed"
+        },
+        {
+          "id": 260,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 191,
+          "n_tracked": 47,
+          "conf_frac": 0.957,
+          "n_conf": 45,
+          "sustained_only": false,
+          "start": 187,
+          "prefix_decision_frame": 194,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 260 [drone]: frames 187-377 (191 covered), not confirmed"
+        },
+        {
+          "id": 560,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 124,
+          "n_tracked": 31,
+          "conf_frac": 1.0,
+          "n_conf": 31,
+          "sustained_only": false,
+          "start": 295,
+          "prefix_decision_frame": 312,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 560 [drone]: frames 295-419 (124 covered), not confirmed"
+        },
+        {
+          "id": 575,
+          "cls": "drone",
+          "gt_kind": "other-ignore",
+          "n_frames": 139,
+          "n_tracked": 38,
+          "conf_frac": 1.0,
+          "n_conf": 38,
+          "sustained_only": false,
+          "start": 303,
+          "prefix_decision_frame": 311,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 575 [drone]: frames 303-442 (139 covered), not confirmed"
+        },
+        {
+          "id": 601,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 161,
+          "n_tracked": 36,
+          "conf_frac": 0.889,
+          "n_conf": 32,
+          "sustained_only": false,
+          "start": 315,
+          "prefix_decision_frame": 323,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 601 [drone]: frames 315-476 (161 covered), not confirmed"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 1,
+          "other-ignore": 1,
+          "nothing": 9,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 1,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 3,
+          "other-ignore": 0,
+          "nothing": 9,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "pc-max",
+      "video": "07_05",
+      "arm": "off",
+      "allow_motion": false,
+      "long_track": 120,
+      "tracker": "committed",
+      "n_confirmed_tracks": 25,
+      "kept_track_ids": [
+        1,
+        2,
+        12
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 1,
+      "bird_tracks_formed": 4,
+      "promoted_by_long_track_only": 1,
+      "raised_but_alarms_txt_not_confirmed": 1,
+      "gt_first_target_frame": 0,
+      "target_alarm_frame": 7,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        8
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 84,
+          "n_gt": 548
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 84,
+          "n_gt": 548
+        },
+        "causal_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        },
+        "smoothed_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        }
+      },
+      "raised": [
+        {
+          "id": 1,
+          "cls": "near",
+          "gt_kind": "other-ignore",
+          "n_frames": 571,
+          "n_tracked": 571,
+          "conf_frac": 1.0,
+          "n_conf": 571,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 1 [near]: frames 0-570 (571 covered), confirmed at frame 7 (latency 7 frames)"
+        },
+        {
+          "id": 2,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 571,
+          "n_tracked": 313,
+          "conf_frac": 1.0,
+          "n_conf": 313,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 2 [drone]: frames 0-570 (571 covered), confirmed at frame 8 (latency 8 frames)"
+        },
+        {
+          "id": 12,
+          "cls": "drone",
+          "gt_kind": "bird",
+          "n_frames": 268,
+          "n_tracked": 130,
+          "conf_frac": 0.008,
+          "n_conf": 1,
+          "sustained_only": true,
+          "start": 68,
+          "prefix_decision_frame": 279,
+          "prefix_decision_clause": "sustained",
+          "alarms_txt": "track 12 [drone]: frames 68-335 (268 covered), not confirmed"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 1,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 1,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 3,
+          "other-ignore": 1,
+          "nothing": 18,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "pc-max",
+      "video": "07_05",
+      "arm": "off_nobypass",
+      "allow_motion": false,
+      "long_track": null,
+      "tracker": "committed",
+      "n_confirmed_tracks": 25,
+      "kept_track_ids": [
+        1,
+        2
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 4,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 0,
+      "target_alarm_frame": 7,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        8
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 548
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 548
+        },
+        "causal_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        },
+        "smoothed_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        }
+      },
+      "raised": [
+        {
+          "id": 1,
+          "cls": "near",
+          "gt_kind": "other-ignore",
+          "n_frames": 571,
+          "n_tracked": 571,
+          "conf_frac": 1.0,
+          "n_conf": 571,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 1 [near]: frames 0-570 (571 covered), confirmed at frame 7 (latency 7 frames)"
+        },
+        {
+          "id": 2,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 571,
+          "n_tracked": 313,
+          "conf_frac": 1.0,
+          "n_conf": 313,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 2 [drone]: frames 0-570 (571 covered), confirmed at frame 8 (latency 8 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 1,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 4,
+          "other-ignore": 1,
+          "nothing": 18,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "pc-max",
+      "video": "10_06",
+      "arm": "on",
+      "allow_motion": true,
+      "long_track": 120,
+      "tracker": "committed",
+      "n_confirmed_tracks": 2,
+      "kept_track_ids": [
+        7,
+        77
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 1,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 1,
+      "gt_first_target_frame": 23,
+      "target_alarm_frame": 30,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        7
+      ],
+      "online_clutter_alarms": [
+        {
+          "frame": 147,
+          "id": 77
+        }
+      ],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 131,
+          "n_gt": 337
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 131,
+          "n_gt": 337
+        }
+      },
+      "raised": [
+        {
+          "id": 7,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 338,
+          "n_tracked": 333,
+          "conf_frac": 0.943,
+          "n_conf": 314,
+          "sustained_only": false,
+          "start": 23,
+          "prefix_decision_frame": 30,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 7 [drone]: frames 23-360 (338 covered), confirmed at frame 30 (latency 7 frames)"
+        },
+        {
+          "id": 77,
+          "cls": "drone",
+          "gt_kind": "nothing",
+          "n_frames": 131,
+          "n_tracked": 21,
+          "conf_frac": 0.714,
+          "n_conf": 15,
+          "sustained_only": false,
+          "start": 120,
+          "prefix_decision_frame": 147,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 77 [drone]: frames 120-250 (131 covered), not confirmed"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 1,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "pc-max",
+      "video": "10_06",
+      "arm": "off",
+      "allow_motion": false,
+      "long_track": 120,
+      "tracker": "committed",
+      "n_confirmed_tracks": 2,
+      "kept_track_ids": [
+        7
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 23,
+      "target_alarm_frame": 30,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        7
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        }
+      },
+      "raised": [
+        {
+          "id": 7,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 338,
+          "n_tracked": 333,
+          "conf_frac": 0.937,
+          "n_conf": 312,
+          "sustained_only": false,
+          "start": 23,
+          "prefix_decision_frame": 30,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 7 [drone]: frames 23-360 (338 covered), confirmed at frame 30 (latency 7 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 1,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "pc-max",
+      "video": "10_06",
+      "arm": "off_nobypass",
+      "allow_motion": false,
+      "long_track": null,
+      "tracker": "committed",
+      "n_confirmed_tracks": 2,
+      "kept_track_ids": [
+        7
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 23,
+      "target_alarm_frame": 30,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        7
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        }
+      },
+      "raised": [
+        {
+          "id": 7,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 338,
+          "n_tracked": 333,
+          "conf_frac": 0.937,
+          "n_conf": 312,
+          "sustained_only": false,
+          "start": 23,
+          "prefix_decision_frame": 30,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 7 [drone]: frames 23-360 (338 covered), confirmed at frame 30 (latency 7 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 1,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "edge-rt",
+      "video": "07_05",
+      "arm": "on",
+      "allow_motion": true,
+      "long_track": 120,
+      "tracker": "committed",
+      "n_confirmed_tracks": 1,
+      "kept_track_ids": [
+        1
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 0,
+      "target_alarm_frame": 7,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        7
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 548
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 548
+        },
+        "causal_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        },
+        "smoothed_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        }
+      },
+      "raised": [
+        {
+          "id": 1,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 571,
+          "n_tracked": 549,
+          "conf_frac": 0.993,
+          "n_conf": 545,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 1 [drone]: frames 0-570 (571 covered), confirmed at frame 7 (latency 7 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "edge-rt",
+      "video": "07_05",
+      "arm": "off",
+      "allow_motion": false,
+      "long_track": 120,
+      "tracker": "committed",
+      "n_confirmed_tracks": 1,
+      "kept_track_ids": [
+        1
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 0,
+      "target_alarm_frame": 7,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        7
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 548
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 548
+        },
+        "causal_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        },
+        "smoothed_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        }
+      },
+      "raised": [
+        {
+          "id": 1,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 571,
+          "n_tracked": 549,
+          "conf_frac": 0.993,
+          "n_conf": 545,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 1 [drone]: frames 0-570 (571 covered), confirmed at frame 7 (latency 7 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "edge-rt",
+      "video": "07_05",
+      "arm": "off_nobypass",
+      "allow_motion": false,
+      "long_track": null,
+      "tracker": "committed",
+      "n_confirmed_tracks": 1,
+      "kept_track_ids": [
+        1
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 0,
+      "target_alarm_frame": 7,
+      "target_alarm_latency_from_gt_first": 7,
+      "run_final_alarm_latency_from_track_start": [
+        7
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 548
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 548
+        },
+        "causal_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        },
+        "smoothed_val": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 206
+        }
+      },
+      "raised": [
+        {
+          "id": 1,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 571,
+          "n_tracked": 549,
+          "conf_frac": 0.993,
+          "n_conf": 545,
+          "sustained_only": false,
+          "start": 0,
+          "prefix_decision_frame": 7,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 1 [drone]: frames 0-570 (571 covered), confirmed at frame 7 (latency 7 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "edge-rt",
+      "video": "10_06",
+      "arm": "on",
+      "allow_motion": true,
+      "long_track": 120,
+      "tracker": "committed",
+      "n_confirmed_tracks": 1,
+      "kept_track_ids": [
+        6
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 23,
+      "target_alarm_frame": 31,
+      "target_alarm_latency_from_gt_first": 8,
+      "run_final_alarm_latency_from_track_start": [
+        10
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        }
+      },
+      "raised": [
+        {
+          "id": 6,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 338,
+          "n_tracked": 301,
+          "conf_frac": 0.89,
+          "n_conf": 268,
+          "sustained_only": false,
+          "start": 23,
+          "prefix_decision_frame": 31,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 6 [drone]: frames 23-360 (338 covered), confirmed at frame 33 (latency 10 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "edge-rt",
+      "video": "10_06",
+      "arm": "off",
+      "allow_motion": false,
+      "long_track": 120,
+      "tracker": "committed",
+      "n_confirmed_tracks": 1,
+      "kept_track_ids": [
+        6
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 23,
+      "target_alarm_frame": 31,
+      "target_alarm_latency_from_gt_first": 8,
+      "run_final_alarm_latency_from_track_start": [
+        10
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        }
+      },
+      "raised": [
+        {
+          "id": 6,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 338,
+          "n_tracked": 301,
+          "conf_frac": 0.89,
+          "n_conf": 268,
+          "sustained_only": false,
+          "start": 23,
+          "prefix_decision_frame": 31,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 6 [drone]: frames 23-360 (338 covered), confirmed at frame 33 (latency 10 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "profile": "edge-rt",
+      "video": "10_06",
+      "arm": "off_nobypass",
+      "allow_motion": false,
+      "long_track": null,
+      "tracker": "committed",
+      "n_confirmed_tracks": 1,
+      "kept_track_ids": [
+        6
+      ],
+      "target_objects_recovered": 1.0,
+      "clutter_tracks_raised": 0,
+      "bird_tracks_raised": 0,
+      "bird_tracks_formed": 0,
+      "promoted_by_long_track_only": 0,
+      "raised_but_alarms_txt_not_confirmed": 0,
+      "gt_first_target_frame": 23,
+      "target_alarm_frame": 31,
+      "target_alarm_latency_from_gt_first": 8,
+      "run_final_alarm_latency_from_track_start": [
+        10
+      ],
+      "online_clutter_alarms": [],
+      "scores": {
+        "causal": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        },
+        "smoothed": {
+          "ap_far": 1.0,
+          "best_f1": 1.0,
+          "recall_any": 1.0,
+          "fp_boxes_any": 0,
+          "n_gt": 337
+        }
+      },
+      "raised": [
+        {
+          "id": 6,
+          "cls": "drone",
+          "gt_kind": "target",
+          "n_frames": 338,
+          "n_tracked": 301,
+          "conf_frac": 0.89,
+          "n_conf": 268,
+          "sustained_only": false,
+          "start": 23,
+          "prefix_decision_frame": 31,
+          "prefix_decision_clause": "confirmed",
+          "alarms_txt": "track 6 [drone]: frames 23-360 (338 covered), confirmed at frame 33 (latency 10 frames)"
+        }
+      ],
+      "confusion_matrix": {
+        "drone": {
+          "target": 1,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "near": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        },
+        "other": {
+          "target": 0,
+          "bird": 0,
+          "other-ignore": 0,
+          "nothing": 0,
+          "ambiguous": 0
+        }
+      }
+    }
+  ]
+}

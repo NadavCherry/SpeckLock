@@ -188,9 +188,14 @@ def main() -> int:
                     help="GT objects whose name starts with this AND are ignore-flagged "
                          "are distractor birds. Other ignore objects (e.g. `near`, the "
                          "landed drone) are neither targets nor false alarms.")
-    ap.add_argument("--no-motion", action="store_true",
-                    help="disable the motion clause in the classifier (see "
-                         "trackclass.classify_tracks allow_motion)")
+    motion = ap.add_mutually_exclusive_group()
+    motion.add_argument("--allow-motion", action="store_true",
+                        help="count 'motion'-labelled detections as drone evidence "
+                             "(trackclass.classify_tracks allow_motion; off by default, see "
+                             "docs/reports/allow-motion.md)")
+    motion.add_argument("--no-motion", action="store_true",
+                        help="the default since allow_motion became opt-in; still accepted "
+                             "so older command lines keep their meaning")
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
 
@@ -206,7 +211,7 @@ def main() -> int:
     bird_instances = sum(len([f for f in gt.objects[n].frames if f not in excl])
                          for n in birds)
 
-    cls = TC.classify_tracks(tracks, dets, allow_motion=not a.no_motion)
+    cls = TC.classify_tracks(tracks, dets, allow_motion=a.allow_motion)
 
     rows = []
     for tr in tracks["tracks"]:
@@ -262,7 +267,7 @@ def main() -> int:
         "gt": str(a.gt), "tracks": str(a.tracks), "dets": str(a.dets),
         "constants": {"CONF_FRAC": TC.CONF_FRAC, "N_CONF": TC.N_CONF,
                       "LONG_TRACK": TC.LONG_TRACK, "DRONE_SCORE": TC.DRONE_SCORE,
-                      "allow_motion": not a.no_motion},
+                      "allow_motion": a.allow_motion},
         "ground_truth": {"target_objects": sorted(targets),
                          "bird_objects": sorted(birds),
                          "other_ignore_objects": sorted(other_ign),
@@ -309,7 +314,7 @@ def main() -> int:
     L = ["# Track-level bird / false-positive analysis", "",
          f"`{a.tracks.name}` scored against `{a.gt.name}`. "
          f"CONF_FRAC={TC.CONF_FRAC}, N_CONF={TC.N_CONF}, LONG_TRACK={TC.LONG_TRACK}, "
-         f"DRONE_SCORE={TC.DRONE_SCORE}.", "",
+         f"DRONE_SCORE={TC.DRONE_SCORE}, allow_motion={a.allow_motion}.", "",
          "A bird raised for 150 consecutive frames is ONE false alarm to an operator, "
          "not 150. Every number below counts tracks.", "",
          f"Ground truth: {len(targets)} target object(s) {sorted(targets)}, "

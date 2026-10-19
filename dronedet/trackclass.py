@@ -30,6 +30,15 @@ This docstring previously said "score >= 0.5" while the code used 0.35, and did 
 mention LONG_TRACK at all -- so the module contradicted itself and the round-3 report
 repeated the wrong number. The constants below are the authority; if you change one,
 change this paragraph in the same commit.
+
+`allow_motion` defaulted to True until October 2026. Under that default every detection
+labelled 'motion' counted as drone evidence, including the PC-MAX proposals the verifier
+had looked at and rejected. Measured through final/run_final.py, it gained the drone
+nothing and raised 11 and 4 clutter tracks on 07_05 and 10_06
+(docs/reports/allow-motion.md), so it is now off unless a caller opts in. Neither
+`allow_motion` nor LONG_TRACK existed when the round-3 tracked files were produced; only a
+rule with neither clause reproduces them (work/reports/allow_motion/provenance.md).
+LONG_TRACK is unchanged, pending its own decision.
 """
 
 from __future__ import annotations
@@ -49,14 +58,17 @@ BIG_W = 60.0       # box width that says "near/landed drone", not the far target
 MATCH_DIST = 8.0   # track-position -> detection association radius
 
 
-def classify_tracks(tracks: dict, dets: dict, allow_motion: bool = True) -> dict[int, dict]:
+def classify_tracks(tracks: dict, dets: dict, allow_motion: bool = False) -> dict[int, dict]:
     """tracks/dets: parsed JSON payloads (tracker output + the detection
     set it consumed). Returns {track_id: {cls, conf_frac, n_conf, ...}}.
 
-    allow_motion: count colour-blind motion detections as drone evidence. Enable
-    on a near-static camera (appearance fails on a tiny black drone, motion is
-    clean); disable on an aggressively moving camera, where motion is parallax-
-    prone clutter and the strong appearance model should be the arbiter."""
+    allow_motion: also count 'motion'-labelled detections (score >= 0.35) as drone
+    evidence. Off by default, because what the label means depends on the detector. In
+    PC-MAX's detections (dronedet/methods/hybrid2.py) a bare 'motion' is a proposal the
+    verifier did NOT confirm, and EDGE-RT emits none. Opt in only for a detector whose
+    'motion' label is evidence in its own right. tools/run_max.py does so for its
+    near-static mc-hybrid path, where a weak appearance model needs colour-blind motion
+    and the motion scores are already clutter-gated."""
     det_frames = {int(f): v for f, v in dets["frames"].items()}
     out = {}
     for tr in tracks["tracks"]:
@@ -76,10 +88,11 @@ def classify_tracks(tracks: dict, dets: dict, allow_motion: bool = True) -> dict
                 continue
             n_matched += 1
             label, score, w = best[5], best[4], best[2] - best[0]
-            # drone evidence = appearance-confirmed OR motion-confirmed. The motion
-            # clause lets the colour-blind ego-motion detector vouch for an
-            # appearance-poor target (a tiny black drone the verifier can't confirm)
-            # -- the tracker's directedness/re-acq already removed zero-mean clutter.
+            # drone evidence = appearance-confirmed, OR (opt-in) motion-confirmed. The
+            # motion clause lets a colour-blind ego-motion detector vouch for an
+            # appearance-poor target (a tiny black drone the verifier can't confirm).
+            # The tracker's directedness/re-acq filters do NOT make that safe on their
+            # own: on PC-MAX they let 4-15 static-camera clutter tracks through per video.
             appearance = label.startswith("drone") and score >= DRONE_SCORE
             motion = allow_motion and ("motion" in label) and score >= 0.35
             if appearance or motion:
@@ -103,7 +116,7 @@ def classify_tracks(tracks: dict, dets: dict, allow_motion: bool = True) -> dict
 
 
 def classify_files(tracks_path: str | Path, dets_path: str | Path,
-                   allow_motion: bool = True) -> dict[int, dict]:
+                   allow_motion: bool = False) -> dict[int, dict]:
     return classify_tracks(json.loads(Path(tracks_path).read_text(encoding="utf-8")),
                            json.loads(Path(dets_path).read_text(encoding="utf-8")), allow_motion=allow_motion)
 

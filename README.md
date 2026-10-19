@@ -329,6 +329,13 @@ low-confidence noise — several run 150–330 frames with `conf_frac` up to 1.0
 **Bird rejection works; clutter rejection does not.**
 [Full analysis](docs/reports/track-level-birds.md).
 
+Those counts were measured under the track classifier's former default. That default counted
+`motion`-labelled detections, proposals the verifier had *not* confirmed, as drone evidence.
+It is now off ([measured](docs/reports/allow-motion.md)). On the same tracks the classifier
+raises 2 clutter tracks on 07_05 and 0 on 10_06, with the drone and bird outcomes unchanged.
+Both remaining tracks pass only through its `LONG_TRACK` length bypass, which is still under
+review.
+
 ---
 
 ## 8 · Speed
